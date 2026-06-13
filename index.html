@@ -1,0 +1,4267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>亚马逊白牌监控 V7 - 2026-06-12</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+    background: #1b2838;
+    color: #c7d5e0;
+    min-height: 100vh;
+}
+.header {
+    background: linear-gradient(135deg, #171a21 0%, #1b2838 100%);
+    padding: 20px 30px;
+    border-bottom: 2px solid #2a475e;
+}
+.header h1 {
+    color: #66c0f4;
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+.header .subtitle {
+    color: #8f98a0;
+    font-size: 14px;
+}
+.stats-bar {
+    display: flex;
+    gap: 20px;
+    padding: 15px 30px;
+    background: #171a21;
+    border-bottom: 1px solid #2a475e;
+    flex-wrap: wrap;
+}
+.stat-item {
+    background: #2a475e;
+    border-radius: 6px;
+    padding: 10px 18px;
+    min-width: 120px;
+}
+.stat-item .label {
+    font-size: 11px;
+    color: #8f98a0;
+    text-transform: uppercase;
+}
+.stat-item .value {
+    font-size: 22px;
+    font-weight: bold;
+    color: #66c0f4;
+    margin-top: 2px;
+}
+.stat-item .value.green { color: #a4d007; }
+.stat-item .value.purple { color: #9b59b6; }
+.stat-item .value.orange { color: #e67e22; }
+
+/* 卖家来源统计 */
+.seller-stats {
+    padding: 10px 30px;
+    background: #171a21;
+    border-bottom: 1px solid #2a475e;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.seller-stats .title {
+    font-size: 12px;
+    color: #8f98a0;
+    margin-right: 5px;
+}
+.seller-tag {
+    background: #2a475e;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: #c7d5e0;
+}
+
+/* 国家导航 */
+.country-nav {
+    display: flex;
+    gap: 8px;
+    padding: 15px 30px;
+    background: #171a21;
+    border-bottom: 1px solid #2a475e;
+    flex-wrap: wrap;
+}
+.country-btn {
+    background: #2a475e;
+    border: 1px solid #3d6b8e;
+    border-radius: 6px;
+    padding: 8px 16px;
+    color: #c7d5e0;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.country-btn:hover {
+    background: #3d6b8e;
+    border-color: #66c0f4;
+}
+.country-btn.active {
+    background: #66c0f4;
+    color: #1b2838;
+    font-weight: bold;
+    border-color: #66c0f4;
+}
+.country-btn .badge {
+    background: #e74c3c;
+    color: white;
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+/* 品类Tab */
+.cat-tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 30px;
+    background: #171a21;
+    border-bottom: 1px solid #2a475e;
+}
+.cat-tab {
+    padding: 10px 24px;
+    cursor: pointer;
+    color: #8f98a0;
+    border-bottom: 2px solid transparent;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.cat-tab:hover { color: #c7d5e0; }
+.cat-tab.active {
+    color: #66c0f4;
+    border-bottom-color: #66c0f4;
+    font-weight: bold;
+}
+
+/* 内容区 */
+.content { padding: 20px 30px; }
+.country-section { display: none; }
+.country-section.active { display: block; }
+
+/* 表格 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #2a475e;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+thead {
+    background: #1b2838;
+}
+th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 12px;
+    color: #66c0f4;
+    text-transform: uppercase;
+    border-bottom: 2px solid #3d6b8e;
+    white-space: nowrap;
+}
+td {
+    padding: 8px 12px;
+    font-size: 13px;
+    border-bottom: 1px solid #1b2838;
+    max-width: 300px;
+}
+tr:hover td {
+    background: #3d6b8e33;
+}
+td.asin a {
+    color: #66c0f4;
+    text-decoration: none;
+    font-family: monospace;
+    font-size: 12px;
+}
+td.asin a:hover {
+    text-decoration: underline;
+}
+td.brand { color: #e74c3c; font-weight: bold; font-size: 12px; }
+td.config { color: #82b1ff; font-size: 11px; white-space: nowrap; }
+td.price { color: #a4d007; font-weight: bold; white-space: nowrap; }
+td.rank { color: #9b59b6; font-weight: bold; text-align: center; }
+td.rating { color: #f39c12; }
+td.reviews { text-align: right; }
+td.sales { color: #66c0f4; text-align: right; }
+td.date { color: #8f98a0; font-size: 12px; white-space: nowrap; }
+td.seller { font-size: 12px; white-space: nowrap; }
+td.title-cell { 
+    max-width: 350px; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+    color: #c7d5e0;
+    font-size: 12px;
+}
+.no-data {
+    text-align: center;
+    padding: 40px;
+    color: #8f98a0;
+    font-size: 16px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .stats-bar, .country-nav, .seller-stats { padding: 10px 15px; }
+    .content { padding: 15px; }
+    td.title-cell { max-width: 200px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🖥️ 亚马逊笔记本电脑白牌监控 V7 (CLI)</h1>
+    <div class="subtitle">数据更新: 2026-06-12 | 数据来源: Sorftime CLI | 覆盖范围: 10国 × 前200名</div>
+</div>
+
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="label">采集产品</div>
+        <div class="value">3,847</div>
+    </div>
+    <div class="stat-item">
+        <div class="label">白牌产品</div>
+        <div class="value green">249</div>
+    </div>
+    <div class="stat-item">
+        <div class="label">白牌占比</div>
+        <div class="value purple">6.5%</div>
+    </div>
+    <div class="stat-item">
+        <div class="label">覆盖国家</div>
+        <div class="value orange">10</div>
+    </div>
+</div>
+
+
+<div class="seller-stats">
+    <span class="title">卖家来源分布:</span>
+    <span class="seller-tag">🇨🇳 中国: 119</span><span class="seller-tag">🏳️ 未知: 28</span><span class="seller-tag">🇬🇧 英国: 27</span><span class="seller-tag">🇭🇰 香港: 15</span><span class="seller-tag">🇬🇷 希腊: 15</span><span class="seller-tag">🇯🇵 日本: 12</span><span class="seller-tag">🇺🇸 美国: 9</span><span class="seller-tag">🇫🇷 法国: 8</span><span class="seller-tag">🇮🇹 意大利: 5</span><span class="seller-tag">🇹🇷 土耳其: 4</span><span class="seller-tag">🇩🇪 德国: 3</span><span class="seller-tag">🇪🇪 爱沙尼亚: 2</span>
+</div>
+
+<div class="country-nav">
+<div class="country-btn active" onclick="switchCountry('US')">🇺🇸 美国<span class="badge">27</span></div>
+<div class="country-btn" onclick="switchCountry('GB')">🇬🇧 英国<span class="badge">29</span></div>
+<div class="country-btn" onclick="switchCountry('DE')">🇩🇪 德国<span class="badge">27</span></div>
+<div class="country-btn" onclick="switchCountry('CA')">🇨🇦 加拿大<span class="badge">29</span></div>
+<div class="country-btn" onclick="switchCountry('JP')">🇯🇵 日本<span class="badge">29</span></div>
+<div class="country-btn" onclick="switchCountry('FR')">🇫🇷 法国<span class="badge">32</span></div>
+<div class="country-btn" onclick="switchCountry('IT')">🇮🇹 意大利<span class="badge">20</span></div>
+<div class="country-btn" onclick="switchCountry('ES')">🇪🇸 西班牙<span class="badge">36</span></div>
+<div class="country-btn" onclick="switchCountry('AE')">🇦🇪 阿联酋<span class="badge">8</span></div>
+<div class="country-btn" onclick="switchCountry('SA')">🇸🇦 沙特<span class="badge">12</span></div>
+</div>
+
+<div class="cat-tabs">
+    <div class="cat-tab active" onclick="switchCat('traditional')">📊 传统笔记本</div>
+    <div class="cat-tab" onclick="switchCat('2in1')">🔄 二合一笔记本</div>
+</div>
+
+<div class="content">
+<div class="country-section active" id="section-US">
+<div id="US-traditional" style="display:block">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">45</td>
+<td class="asin"><a href="https://amazon.com/dp/B0G51ZZ34Y" target="_blank">B0G51ZZ34Y</a></td>
+<td class="brand">NIMO</td>
+<td class="config">15.6寸 I5-1135G7 16G 512G</td>
+<td class="title-cell" title="NIMO 15.6’’ IPS FHD Laptop, 16GB RAM 512GB SSD AMD Ryzen 5(Beat i5-1135G7, 4 Cores Up to 3.7GHz) Student Computer with 65W Type-C, 2 Years Warranty, Fingerprint, Backlit Keyboard, BT5.2, for Home">NIMO 15.6’’ IPS FHD Laptop, 16GB RAM 512GB SSD AMD Ryzen 5(Beat i5-1135G7, 4 Cor...</td>
+<td class="price">$499.99</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">120</td>
+<td class="sales">929</td>
+<td class="date">2025-12-12</td>
+<td class="seller">🇺🇸 美国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">57</td>
+<td class="asin"><a href="https://amazon.com/dp/B0G51YFVN3" target="_blank">B0G51YFVN3</a></td>
+<td class="brand">NIMO</td>
+<td class="config">15.6寸 I7-1360P 32G 1TB</td>
+<td class="title-cell" title="NIMO 15.6' Light-Gaming-Laptop, 8 Cores AMD Ryzen 7 Pro 6850U 32GB RAM 1TB SSD (Beat i7-1360P Up to 4.7GHz) Radeon 680M 100W Fast PD FHD Backlit Keyboard for Content Creators & Student 2-Yr Warranty">NIMO 15.6' Light-Gaming-Laptop, 8 Cores AMD Ryzen 7 Pro 6850U 32GB RAM 1TB SSD (...</td>
+<td class="price">$699.99</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">28</td>
+<td class="sales">724</td>
+<td class="date">2026-01-27</td>
+<td class="seller">🇺🇸 美国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">65</td>
+<td class="asin"><a href="https://amazon.com/dp/B0GYRWPPTN" target="_blank">B0GYRWPPTN</a></td>
+<td class="brand">SAGAWHALE</td>
+<td class="config">15.6寸 16G 256G</td>
+<td class="title-cell" title="2026 Windows 11 Pro Traditional Laptop Computer, 16GB RAM 256GB SSD for Business Office Student School College, 15.6' FHD IPS Display, Lightweight Portable with Office 365, 4H Battery, 3.5 lbs">2026 Windows 11 Pro Traditional Laptop Computer, 16GB RAM 256GB SSD for Business...</td>
+<td class="price">$289.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">38</td>
+<td class="sales">576</td>
+<td class="date">2026-04-30</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">79</td>
+<td class="asin"><a href="https://amazon.com/dp/B0H2H2M3YD" target="_blank">B0H2H2M3YD</a></td>
+<td class="brand">Exilapsire</td>
+<td class="config">16寸 AMD A9 8G 256G</td>
+<td class="title-cell" title="16 inch Laptop Computer,8GB RAM 256GB SSD Storage Laptop PC,with AMD A9 Processor(up to 3.2GHz),IPS FHD Display,Win11,Students & Work Notebook Computer,Cooling System,9000mAh Battery">16 inch Laptop Computer,8GB RAM 256GB SSD Storage Laptop PC,with AMD A9 Processo...</td>
+<td class="price">$249.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">14</td>
+<td class="sales">928</td>
+<td class="date">1970-01-01</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">86</td>
+<td class="asin"><a href="https://amazon.com/dp/B0FS1V6XZD" target="_blank">B0FS1V6XZD</a></td>
+<td class="brand">Phatom</td>
+<td class="config">15.6寸 Pentium 4G 128G 金色</td>
+<td class="title-cell" title="Phatom 15.6' FHD Laptop Computers, Compatible with Windows 11, Pentium Gold (Beats Pentium, Celeron), Cooling Fan, 4GB RAM, 128GB SSD, Up to 2TB, HDMI, for Business, Student">Phatom 15.6' FHD Laptop Computers, Compatible with Windows 11, Pentium Gold (Bea...</td>
+<td class="price">$219.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">146</td>
+<td class="sales">405</td>
+<td class="date">2025-09-23</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">96</td>
+<td class="asin"><a href="https://amazon.com/dp/B0G6YH29KQ" target="_blank">B0G6YH29KQ</a></td>
+<td class="brand">Morostron</td>
+<td class="config">16寸 AMD A9 8G 256G</td>
+<td class="title-cell" title="Laptop 16-inch 8GB DDR 256GB SSD portable laptop computer, expandable to 1TB, AMD A9-9400 Radeon R5 CPU up to 3.2 GHz, 9000mAh battery, Numeric Keypad, USB 3.0, dual-band WiFi, webcam, slim laptops">Laptop 16-inch 8GB DDR 256GB SSD portable laptop computer, expandable to 1TB, AM...</td>
+<td class="price">$249.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">45</td>
+<td class="sales">320</td>
+<td class="date">1970-01-01</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">102</td>
+<td class="asin"><a href="https://amazon.com/dp/B0G4Q97KLH" target="_blank">B0G4Q97KLH</a></td>
+<td class="brand">Molegar</td>
+<td class="config">15.6寸 i5 8G 256G 玫瑰金</td>
+<td class="title-cell" title="2026 Latest Laptop Computer Notebook,15.6' IPS FHD Display,8GB RAM 256GB SSD,Celeron N5100 Processor,WiFi5,BT5.0,USB3.0,Backlit keyboard,Fingerprint for Business Home Office and Students,Rose Gold">2026 Latest Laptop Computer Notebook,15.6' IPS FHD Display,8GB RAM 256GB SSD,Cel...</td>
+<td class="price">$236.99</td>
+<td class="rating">⭐3.9</td>
+<td class="reviews">152</td>
+<td class="sales">271</td>
+<td class="date">2025-12-09</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">113</td>
+<td class="asin"><a href="https://amazon.com/dp/B0H2L7CKDP" target="_blank">B0H2L7CKDP</a></td>
+<td class="brand">MOONFISH</td>
+<td class="config">15.6寸 16G 256G</td>
+<td class="title-cell" title="Moonfish 2026 Laptop Computer Window 11 Pro, 15.6 Inch Lap Top, 16GB RAM 256GB SSD Trational PC Notebook, Office 365, Business, School, Work, Student, Kids">Moonfish 2026 Laptop Computer Window 11 Pro, 15.6 Inch Lap Top, 16GB RAM 256GB S...</td>
+<td class="price">$339.99</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">3</td>
+<td class="sales">393</td>
+<td class="date">2026-05-23</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">115</td>
+<td class="asin"><a href="https://amazon.com/dp/B0GRV332Q8" target="_blank">B0GRV332Q8</a></td>
+<td class="brand">MITUNTUN</td>
+<td class="config">15.6寸 N4000 16G 256G</td>
+<td class="title-cell" title="MITUNTUN 2026 New Laptop Computer, 15.6 Inch Window 11 Pro Lap Top PC 16GB RAM 256GB SSD, Core M3(Beat N4000), 2-Year Warranty, Office 365, FHD 1920 * 1080, 180°Open, UHD Graphics, Full-Size Keyboard">MITUNTUN 2026 New Laptop Computer, 15.6 Inch Window 11 Pro Lap Top PC 16GB RAM 2...</td>
+<td class="price">$349.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">77</td>
+<td class="sales">353</td>
+<td class="date">2026-03-11</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">130</td>
+<td class="asin"><a href="https://amazon.com/dp/B0DR2QCKNR" target="_blank">B0DR2QCKNR</a></td>
+<td class="brand">Auusda</td>
+<td class="config">15.6寸 16G 1TB 银色</td>
+<td class="title-cell" title="Auusda Business Laptop Computer for Work, Notebook PC for College Students, 15.6' FHD Display, 4-Core Processor, Backlit Keyboard, Fingerprint ID, Up to 10TB Storage, 16GB DDR4 RAM, 1TB NVMe, Silver">Auusda Business Laptop Computer for Work, Notebook PC for College Students, 15.6...</td>
+<td class="price">$299.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">735</td>
+<td class="sales">313</td>
+<td class="date">2024-12-21</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>11</td>
+<td class="rank">134</td>
+<td class="asin"><a href="https://amazon.com/dp/B0GY8JG1P1" target="_blank">B0GY8JG1P1</a></td>
+<td class="brand">NAIKLULU</td>
+<td class="config">15.6寸 i5 16G 256G</td>
+<td class="title-cell" title="NAIKLULU Laptop Computer, Win 11 Pro Lap Top, 15.6 Inch Laptop PC 2026, 16GB RAM 256GB SSD, M3-6Y30 Processor, FHD Display 1920 * 1080P, WIFI5, BT4.2, 5000mAh Battery, for School Business Student">NAIKLULU Laptop Computer, Win 11 Pro Lap Top, 15.6 Inch Laptop PC 2026, 16GB RAM...</td>
+<td class="price">$289.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">48</td>
+<td class="sales">290</td>
+<td class="date">2026-04-25</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>12</td>
+<td class="rank">140</td>
+<td class="asin"><a href="https://amazon.com/dp/B0GN247S82" target="_blank">B0GN247S82</a></td>
+<td class="brand">NIMO</td>
+<td class="config">15.6寸 Ryzen 7 8745Hs 32G 1TB</td>
+<td class="title-cell" title="NIMO 15.6' IPS FHD-Gaming-Laptop, 8 Cores AMD Ryzen 7 8745HS 32GB DDR5 RAM 1TB SSD (up to 4.9GHz Beat R9 7940HS) Radeon 780M-Graphics, 100W Type-C Backlit Keyboard Fingerprint for Creators">NIMO 15.6' IPS FHD-Gaming-Laptop, 8 Cores AMD Ryzen 7 8745HS 32GB DDR5 RAM 1TB S...</td>
+<td class="price">$799.97</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">105</td>
+<td class="sales">316</td>
+<td class="date">2026-03-23</td>
+<td class="seller">🇺🇸 美国</td>
+</tr>
+<tr>
+<td>13</td>
+<td class="rank">166</td>
+<td class="asin"><a href="https://amazon.com/dp/B0GN21QYCL" target="_blank">B0GN21QYCL</a></td>
+<td class="brand">NIMO</td>
+<td class="config">15.6寸 N150 8G 256G</td>
+<td class="title-cell" title="NIMO 15.6' IPS FHD-Student-Laptop, Intel Twin Lake N150 (4 Cores Up to 3.6GHz) with 2-Years-Warranty, 65W Type-C, Fingerprint, Backlit Keyboard, 53.58Wh Battery 8GB RAM 256GB SSD for Office and Home">NIMO 15.6' IPS FHD-Student-Laptop, Intel Twin Lake N150 (4 Cores Up to 3.6GHz) w...</td>
+<td class="price">$299.96</td>
+<td class="rating">⭐3.5</td>
+<td class="reviews">9</td>
+<td class="sales">373</td>
+<td class="date">2026-03-25</td>
+<td class="seller">🇺🇸 美国</td>
+</tr>
+<tr>
+<td>14</td>
+<td class="rank">170</td>
+<td class="asin"><a href="https://amazon.com/dp/B0GQ27NL62" target="_blank">B0GQ27NL62</a></td>
+<td class="brand">NIAKUN</td>
+<td class="config">15.6寸 Pentium 8G 256G</td>
+<td class="title-cell" title="2026 Laptops Computer,15.6' Windows 11 Pro Laptop with Office 365 included,8GB RAM 256GB SSD,Intel Pentium Process,6H Battery,Mini HDMI,cam|Mic,Portable Thin Lap Top for College Student Business Work">2026 Laptops Computer,15.6' Windows 11 Pro Laptop with Office 365 included,8GB R...</td>
+<td class="price">$299.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">28</td>
+<td class="sales">406</td>
+<td class="date">2026-03-02</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>15</td>
+<td class="rank">189</td>
+<td class="asin"><a href="https://amazon.com/dp/B0FB4381XX" target="_blank">B0FB4381XX</a></td>
+<td class="brand">NIMO</td>
+<td class="config">15.6寸 I3-1115G4 16G 1TB</td>
+<td class="title-cell" title="NIMO 15.6 IPS-FHD-Laptop, 16GB RAM 1TB SSD Intel Pentium Quad Core N100, Backlit Keyboard Fingerprint (Beat to i3-1115G4 Up to 3.4GHz) Computer for Student-Home WiFi 6 BT5.2 Win 11">NIMO 15.6 IPS-FHD-Laptop, 16GB RAM 1TB SSD Intel Pentium Quad Core N100, Backlit...</td>
+<td class="price">$359.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">707</td>
+<td class="sales">205</td>
+<td class="date">2025-06-09</td>
+<td class="seller">🇺🇸 美国</td>
+</tr>
+<tr>
+<td>16</td>
+<td class="rank">197</td>
+<td class="asin"><a href="https://amazon.com/dp/B0G52Z3FKR" target="_blank">B0G52Z3FKR</a></td>
+<td class="brand">NIMO</td>
+<td class="config">15.6寸 Ryzen 7 7735Hs 16G 512G</td>
+<td class="title-cell" title="NIMO Gaming Laptop 15.6', AMD Ryzen 7 7735HS (Boost 4.75GHz), 16GB DDR5 RAM, 512GB PCIe 4.0 SSD, Windows 11 Home, 1080P FHD Display, Backlit Keyboard, 100W PD Fast Charge, 2X Full-Function USB-C">NIMO Gaming Laptop 15.6', AMD Ryzen 7 7735HS (Boost 4.75GHz), 16GB DDR5 RAM, 512...</td>
+<td class="price">$569.97</td>
+<td class="rating">⭐4.8</td>
+<td class="reviews">12</td>
+<td class="sales">228</td>
+<td class="date">2025-12-09</td>
+<td class="seller">🇺🇸 美国</td>
+</tr>
+</tbody></table>
+</div>
+<div id="US-2in1" style="display:none">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">20</td>
+<td class="asin"><a href="https://amazon.com/dp/B0FC68Q1HJ" target="_blank">B0FC68Q1HJ</a></td>
+<td class="brand">KOOFORWAY</td>
+<td class="config">8寸 N150 12G 512G</td>
+<td class="title-cell" title="KOOFORWAY 8' Mini Laptop 2-in-1 HD Touchscreen Portable, Win 11 Pro Portable Pocket PC, N150 12 GB LPDDR5 512 GB M.2 SSD, Wi-Fi 6, BT 5.2 2 MP Camera, G-Sensor, HDMI, Type C">KOOFORWAY 8' Mini Laptop 2-in-1 HD Touchscreen Portable, Win 11 Pro Portable Poc...</td>
+<td class="price">$439.00</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">118</td>
+<td class="sales">181</td>
+<td class="date">2025-07-11</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">25</td>
+<td class="asin"><a href="https://amazon.com/dp/B0GDWQRWV3" target="_blank">B0GDWQRWV3</a></td>
+<td class="brand">Tylvx</td>
+<td class="config">15.6寸 8100Y 16G 512G 紫色</td>
+<td class="title-cell" title="15.6' 2-in-1 Laptop/Tablet, 360° Flip FHD Touchscreen, Dual-Core m3-8100Y up to 3.4GHz, 16GB RAM 512GB SSD, Win11, Deep Purple for Student Note-Taking, Design, Entertainment">15.6' 2-in-1 Laptop/Tablet, 360° Flip FHD Touchscreen, Dual-Core m3-8100Y up to ...</td>
+<td class="price">$339.66</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">13</td>
+<td class="sales">66</td>
+<td class="date">2026-01-04</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">46</td>
+<td class="asin"><a href="https://amazon.com/dp/B0GWGWY6BB" target="_blank">B0GWGWY6BB</a></td>
+<td class="brand">QAZIPO</td>
+<td class="config">10.1寸 6500Y 8G 256G</td>
+<td class="title-cell" title="2-in-1 Laptop/Tablet (2026), Windows 11 PC with Magnetic Keyboard, 1-Year Office 365, 10.1' FHD IPS Touchscreen, 8GB RAM 256GB SSD, 6500Y Processor, USB-C, 2 Stereo Speakers for Home Office Students">2-in-1 Laptop/Tablet (2026), Windows 11 PC with Magnetic Keyboard, 1-Year Office...</td>
+<td class="price">$357.49</td>
+<td class="rating">⭐3.7</td>
+<td class="reviews">12</td>
+<td class="sales">63</td>
+<td class="date">2026-04-23</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">53</td>
+<td class="asin"><a href="https://amazon.com/dp/B0G1SXB292" target="_blank">B0G1SXB292</a></td>
+<td class="brand">AWOW</td>
+<td class="config">10.1寸 N150 12G 256G</td>
+<td class="title-cell" title="AWOW Windows 11 Tablet with Keyboard: 10.1“ in-Cell Display Tablet PC, Mini Laptop 2-in-1, Intel N150, 12GB RAM 256GB SSD, PD 36W Fast Charging, WiFi 6, BT 5.0, HDMI, Type-C, 8MP+5MP Camera">AWOW Windows 11 Tablet with Keyboard: 10.1“ in-Cell Display Tablet PC, Mini Lapt...</td>
+<td class="price">$279.00</td>
+<td class="rating">⭐3.5</td>
+<td class="reviews">16</td>
+<td class="sales">41</td>
+<td class="date">2025-11-26</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">70</td>
+<td class="asin"><a href="https://amazon.com/dp/B0F7X52QSJ" target="_blank">B0F7X52QSJ</a></td>
+<td class="brand">Morostron</td>
+<td class="config">13.5寸 N95 16G 512G</td>
+<td class="title-cell" title="13.5-inch portable touchscreen laptop computer,16GB RAM,512GB SSD,3K (3000×2000) IPS,Celeron N95 processor up to 3.4 GHz,10000mAh battery,backlit keyboard,fingerprint unlocking,Windows 11,slim laptops">13.5-inch portable touchscreen laptop computer,16GB RAM,512GB SSD,3K (3000×2000)...</td>
+<td class="price">$349.99</td>
+<td class="rating">⭐3</td>
+<td class="reviews">4</td>
+<td class="sales">394</td>
+<td class="date">2026-04-15</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">86</td>
+<td class="asin"><a href="https://amazon.com/dp/B09P5WX3CZ" target="_blank">B09P5WX3CZ</a></td>
+<td class="brand">SZTPSLS</td>
+<td class="config">11.6寸 4G 256G 银色</td>
+<td class="title-cell" title="SZTPSLS Windows Laptop, 2 in 1 with Touchscreen,11.6 inch FHD Windows 11 Laptops Computer,4GB RAM,256GB SSD Storage,360 Degree Convertible Tablet,Webcam,WiFi,Type-C,Silver">SZTPSLS Windows Laptop, 2 in 1 with Touchscreen,11.6 inch FHD Windows 11 Laptops...</td>
+<td class="price">$279.88</td>
+<td class="rating">⭐3.6</td>
+<td class="reviews">187</td>
+<td class="sales">41</td>
+<td class="date">2022-01-27</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">89</td>
+<td class="asin"><a href="https://amazon.com/dp/B0FTS2YTT3" target="_blank">B0FTS2YTT3</a></td>
+<td class="brand">ADREAMER</td>
+<td class="config">10.1寸 N150 256G</td>
+<td class="title-cell" title="ADREAMER 10.1“ Win 11 Tablet, 2 in 1 Tablet Laptop, Intel N150, 8GB + 256GB, 1280 x 800 HD IPS Touchscreen, WiFi 6, BT 5.2, Micro HDMI, Dual Type-C, USB 3.0">ADREAMER 10.1“ Win 11 Tablet, 2 in 1 Tablet Laptop, Intel N150, 8GB + 256GB, 128...</td>
+<td class="price">$279.99</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">29</td>
+<td class="sales">51</td>
+<td class="date">2025-11-16</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">104</td>
+<td class="asin"><a href="https://amazon.com/dp/B0DFQBSQBL" target="_blank">B0DFQBSQBL</a></td>
+<td class="brand">KOOFORWAY</td>
+<td class="config">8寸 N150 12G 512G</td>
+<td class="title-cell" title="KOOFORWAY 8 Inch 2-in-1 Mini Laptop Tablet PC,N150 (Up to 3.6GHz), 12GB LPDDR5 RAM, 512GB SSD, Win 11 Pro 1280×800 Touchscreen, WiFi 6 BT5.2, USB-C, HDMI, Stylus Support Portable Notebook PC">KOOFORWAY 8 Inch 2-in-1 Mini Laptop Tablet PC,N150 (Up to 3.6GHz), 12GB LPDDR5 R...</td>
+<td class="price">$439.00</td>
+<td class="rating">⭐4</td>
+<td class="reviews">285</td>
+<td class="sales">62</td>
+<td class="date">2024-09-28</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">126</td>
+<td class="asin"><a href="https://amazon.com/dp/B0GVH47PX6" target="_blank">B0GVH47PX6</a></td>
+<td class="brand">Tunhail</td>
+<td class="config">10.1寸 8100Y 12G 256G</td>
+<td class="title-cell" title="10.1 2 in 1 inch Laptop 12GB RAM 256GB SSD, 360°Flip Touchscreen Laptop with m3-8100Y（Up to 3.40 GH） 800 * 1280 IPS FHD, Backlit Keyboard Laptop Computer for Students/Commuters/Business">10.1 2 in 1 inch Laptop 12GB RAM 256GB SSD, 360°Flip Touchscreen Laptop with m3-...</td>
+<td class="price">$279.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">10</td>
+<td class="sales">42</td>
+<td class="date">2026-04-07</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">158</td>
+<td class="asin"><a href="https://amazon.com/dp/B0DGLKYBK5" target="_blank">B0DGLKYBK5</a></td>
+<td class="brand">KOOTIGERS</td>
+<td class="config">8寸 N150 12G 512G</td>
+<td class="title-cell" title="Mini Laptop 8“ 2-in-1, Laptop Computer Win 11, Intel N150(up to 3.6GHz), 12GB RAM 512GB SSD, Touchscreen HD, Backlit Keyboard, Wi-Fi 6, USB-C, Lightweight Portable PC for Work/Kids/School">Mini Laptop 8“ 2-in-1, Laptop Computer Win 11, Intel N150(up to 3.6GHz), 12GB RA...</td>
+<td class="price">$439.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">68</td>
+<td class="sales">65</td>
+<td class="date">2024-10-07</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>11</td>
+<td class="rank">179</td>
+<td class="asin"><a href="https://amazon.com/dp/B0DZMQ8SJ9" target="_blank">B0DZMQ8SJ9</a></td>
+<td class="brand">BINHENGLON</td>
+<td class="config">11寸 N100 16G 512G 灰色</td>
+<td class="title-cell" title="11 Inch 2 in 1 Laptop, 360° Touchscreen Convertible Laptop Computer, Celeron N100 (Up to 3.4GHz), 16GB DDR4 RAM, 1920 x1200 IPS Display, Backlit Keyboard (Gray, 16GB+512GB SSD)">11 Inch 2 in 1 Laptop, 360° Touchscreen Convertible Laptop Computer, Celeron N10...</td>
+<td class="price">$269.00</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">4</td>
+<td class="sales">18</td>
+<td class="date">2025-03-16</td>
+<td class="seller">🇺🇸 美国</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="country-section" id="section-GB">
+<div id="GB-traditional" style="display:block">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">37</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0FWT4TMBM" target="_blank">B0FWT4TMBM</a></td>
+<td class="brand">Lapbook</td>
+<td class="config">15.6寸 15th Gen 16G 512G</td>
+<td class="title-cell" title="Lapbook 15.6“ Full HD Windows 11 Laptop - 15th Gen CPU, 512GB M.2 SSD, Windows 11 Home, Dual-Band WiFi, Integrated Webcam - S15 N6 Quad-Core, 15 Inch Lightweight Laptop (16GB RAM)">Lapbook 15.6“ Full HD Windows 11 Laptop - 15th Gen CPU, 512GB M.2 SSD, Windows 1...</td>
+<td class="price">£379.99</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">81</td>
+<td class="sales">138</td>
+<td class="date">2025-10-27</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">42</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GM11CBWT" target="_blank">B0GM11CBWT</a></td>
+<td class="brand">Tivique</td>
+<td class="config">17.3寸 Ryzen 4300U 16G 512G</td>
+<td class="title-cell" title="Tivique 17.3 inch Laptop with Quad-Core AMD Ryzen 4300U Processor up to 3.70GHz (Beat N150/N97) 16GB RAM DDR4 + 512GB M.2 SSD Computer, WiFi 5, BT5.2,USB3.2, HDMI, Type-C,1080 FHD, 62.7Wh Long-Battery">Tivique 17.3 inch Laptop with Quad-Core AMD Ryzen 4300U Processor up to 3.70GHz ...</td>
+<td class="price">£389.97</td>
+<td class="rating">⭐4</td>
+<td class="reviews">84</td>
+<td class="sales">178</td>
+<td class="date">2026-02-07</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">52</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GT8RJD9Z" target="_blank">B0GT8RJD9Z</a></td>
+<td class="brand">NAIKLULU</td>
+<td class="config">15.6寸 4425Y 8G 256G</td>
+<td class="title-cell" title="NAIKLULU 15.6 inch 2026 Cheap Pc Laptop 8 GB RAM 256GB SSD, 4425Y Processor Student Laptop Computer, FHD 1920 x 1080P, 5000 MAh/38.5Wh, TF Card, Touchpad, Business/Student/Home">NAIKLULU 15.6 inch 2026 Cheap Pc Laptop 8 GB RAM 256GB SSD, 4425Y Processor Stud...</td>
+<td class="price">£195.49</td>
+<td class="rating">⭐5</td>
+<td class="reviews">7</td>
+<td class="sales">100</td>
+<td class="date">2026-04-04</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">60</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0FVFH1D8T" target="_blank">B0FVFH1D8T</a></td>
+<td class="brand">Tivique</td>
+<td class="config">16.1寸 I7-13800H 16G 512G</td>
+<td class="title-cell" title="Tivique 16.1“ Gaming Laptop with Ryzen 7 7735HS Processor up to 4.75 GHz (Beat 13th i7-13800H), 8C/16T - 4800MHz 16GB RAM DDR5*2+512GB M.2 SSD,1200 FHD, HDMI, WiFi 6,12C Radeon 680M, Backlit Keyboard">Tivique 16.1“ Gaming Laptop with Ryzen 7 7735HS Processor up to 4.75 GHz (Beat 1...</td>
+<td class="price">£499.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">61</td>
+<td class="sales">90</td>
+<td class="date">2025-10-23</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">67</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GHVNTBCW" target="_blank">B0GHVNTBCW</a></td>
+<td class="brand">Tivique</td>
+<td class="config">18.5寸 N150 16G 512G</td>
+<td class="title-cell" title="Tivique 18.5 Inch FHD Laptop with 13th N150 Quad-Core Processor up to 3.6GHz, 16GB RAM 512GB M.2 SSD, Support Dual-Band WiFi, BT 5.2, HD Display,USB3.2,HDMI, Type-C,Dual Speakers, 8000mAh Long">Tivique 18.5 Inch FHD Laptop with 13th N150 Quad-Core Processor up to 3.6GHz, 16...</td>
+<td class="price">£379.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">9</td>
+<td class="sales">92</td>
+<td class="date">2026-01-26</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">69</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0G64N469D" target="_blank">B0G64N469D</a></td>
+<td class="brand">CHIFUYOU</td>
+<td class="config">15.6寸 M3 16G 256G</td>
+<td class="title-cell" title="CHIFUYOU 15.6 Inch Laptop 16GB RAM 256GB SSD M3-6Y30 Processor(0.9 to 2.2 Ghz), 2026 New Computer Gaming Laptop, FHD 1920 x 1080P, 5000 MAh/38.5Wh, TF Card, Webcam, Touchpad, Student/Home/Business">CHIFUYOU 15.6 Inch Laptop 16GB RAM 256GB SSD M3-6Y30 Processor(0.9 to 2.2 Ghz), ...</td>
+<td class="price">£190.37</td>
+<td class="rating">⭐5</td>
+<td class="reviews">8</td>
+<td class="sales">88</td>
+<td class="date">2025-12-17</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">72</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0FT8C4D4J" target="_blank">B0FT8C4D4J</a></td>
+<td class="brand">NAIKLULU</td>
+<td class="config">16寸 N100 16G 16G</td>
+<td class="title-cell" title="NAIKLULU 16 Inch Budget Gaming Laptop 2025 Processor N100 (1.0 to 3.4GHz) RAM 16GB SSD 1TB Gamer Laptop Computer 2025, Fingerprint Reader/6000Mah/1920 x1200P/Webcam/Backlit Full Keyboard/Touchpad">NAIKLULU 16 Inch Budget Gaming Laptop 2025 Processor N100 (1.0 to 3.4GHz) RAM 16...</td>
+<td class="price">£356.90</td>
+<td class="rating">⭐5</td>
+<td class="reviews">1</td>
+<td class="sales">107</td>
+<td class="date">2025-10-28</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">73</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GX9LLQZH" target="_blank">B0GX9LLQZH</a></td>
+<td class="brand">Tivique</td>
+<td class="config">15.6寸 Ryzen 7 5825U 16G 1TB</td>
+<td class="title-cell" title="Tivique 15.6 Inch Laptop with AMD Ryzen 7 5825U (Processor up to 4.5GHz) 8C/16T - 16GB RAM DDR4 + 1TB M.2 PCIe 3.0 SSD, 1080 HD Display, HDMI, BT5.2,USB3.2,Type-C,Dual Speakers,65W Fast Adapter,WiFi 6">Tivique 15.6 Inch Laptop with AMD Ryzen 7 5825U (Processor up to 4.5GHz) 8C/16T ...</td>
+<td class="price">£499.99</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">11</td>
+<td class="sales">90</td>
+<td class="date">2026-04-15</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">73</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GTNN6ZDX" target="_blank">B0GTNN6ZDX</a></td>
+<td class="brand">LEEDOW</td>
+<td class="config">11.6寸 N4020 6G 128G 蓝色</td>
+<td class="title-cell" title="LEEDOW 11.6 inch Laptop 6GB RAM 128GB SSD, 360° Foldable Touchscreen Laptop Celeron N4020, Laptop Computer Support TF Card, 2.4G/5G Dual-Band WiFi, Bluetooth, USB 3.0 * 2 for Work, Education, Travel">LEEDOW 11.6 inch Laptop 6GB RAM 128GB SSD, 360° Foldable Touchscreen Laptop Cele...</td>
+<td class="price">£199.00</td>
+<td class="rating">⭐5</td>
+<td class="reviews">8</td>
+<td class="sales">79</td>
+<td class="date">2026-03-28</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">73</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0FX3WYW4D" target="_blank">B0FX3WYW4D</a></td>
+<td class="brand">DREAMFYRE</td>
+<td class="config">14寸 i3 8G 256G</td>
+<td class="title-cell" title="14“ inch Laptop 8GB RAM 256GB SSD Laptop PC Core i3 with HD Display Webcam Support Dual-Band WiFi Student/ Business Laptops Computer with WPS Office, Long Battery Life, Type-C USB3.0 HDMI Port.">14“ inch Laptop 8GB RAM 256GB SSD Laptop PC Core i3 with HD Display Webcam Suppo...</td>
+<td class="price">£189.00</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">22</td>
+<td class="sales">75</td>
+<td class="date">2025-11-06</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>11</td>
+<td class="rank">78</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GVJCQHJ9" target="_blank">B0GVJCQHJ9</a></td>
+<td class="brand">BLUEING</td>
+<td class="config">15.6寸 Pentium 8G 256G 金色</td>
+<td class="title-cell" title="BLUEING 15.6 Inch FHD Laptop, Pentium Gold 6500Y Processor(Up to 3.4GHz) - 8GB RAM 256GB SSD, 5000mAh Battery,Type-C,Portable Laptops Computer for Business Office Home">BLUEING 15.6 Inch FHD Laptop, Pentium Gold 6500Y Processor(Up to 3.4GHz) - 8GB R...</td>
+<td class="price">£219.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">1</td>
+<td class="sales">99</td>
+<td class="date">2026-04-11</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>12</td>
+<td class="rank">78</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GSZWM31C" target="_blank">B0GSZWM31C</a></td>
+<td class="brand">Txxren</td>
+<td class="config">16寸 I5-8210Y 16G 1TB 蓝色</td>
+<td class="title-cell" title="Txxren Laptop 16 inch, Core i5-8210Y Processor 16GB RAM 1TB SSD Win 11 Pro FHD 1920 * 1200 Notebook, with RJ45, Type-C, USB 3.0, Dual Band Wi-Fi, Bluetooth, Numeric Keypad Laptops Compute">Txxren Laptop 16 inch, Core i5-8210Y Processor 16GB RAM 1TB SSD Win 11 Pro FHD 1...</td>
+<td class="price">£349.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">6</td>
+<td class="sales">96</td>
+<td class="date">2026-03-24</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>13</td>
+<td class="rank">81</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GPW5X1YP" target="_blank">B0GPW5X1YP</a></td>
+<td class="brand">Txxren</td>
+<td class="config">15.6寸 i5 24G 512G</td>
+<td class="title-cell" title="Txxren 15.6 inch Laptop, Core i5 8210Y Processor 24GB RAM 512GB SSD Notebook, FHD 1920 x1200 Display Win11 Pro Laptops Computer with Type-C, USB3.0, HDMI, BT5.0, Wi-Fi5">Txxren 15.6 inch Laptop, Core i5 8210Y Processor 24GB RAM 512GB SSD Notebook, FH...</td>
+<td class="price">£329.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">5</td>
+<td class="sales">90</td>
+<td class="date">2026-02-28</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>14</td>
+<td class="rank">84</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GQ9QYDLK" target="_blank">B0GQ9QYDLK</a></td>
+<td class="brand">Tivique</td>
+<td class="config">15.6寸 I5-12600H 16G 512G</td>
+<td class="title-cell" title="Tivique 15.6 inch Gaming Laptop with 12th Core i5-12600H Processor up to 4.50 GHz (Beat Ryzen 7 6800H) 12C(4P+8E)/16T - 16GB RAM DDR4*2 + 512GB M.2 PCIe 3.0 SSD, 1080P FHD,BT5.2, USB3.2, Type-C,WiFi 6">Tivique 15.6 inch Gaming Laptop with 12th Core i5-12600H Processor up to 4.50 GH...</td>
+<td class="price">£449.99</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">12</td>
+<td class="sales">82</td>
+<td class="date">2026-03-06</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>15</td>
+<td class="rank">87</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GWM4RTDT" target="_blank">B0GWM4RTDT</a></td>
+<td class="brand">Tivique</td>
+<td class="config">18.5寸 Ryzen 4300U 16G 512G</td>
+<td class="title-cell" title="Tivique 18.5 Inch FHD Laptop with Ryzen 4300U Quad-Core Processor up to 3.7GHz, 16GB RAM 512GB M.2 SSD, Support Dual-Band WiFi, BT 5.2, FHD,USB3.2,HDMI, Type-C,Dual Speakers, 8000mAh Long-Battery">Tivique 18.5 Inch FHD Laptop with Ryzen 4300U Quad-Core Processor up to 3.7GHz, ...</td>
+<td class="price">£429.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">5</td>
+<td class="sales">91</td>
+<td class="date">2026-04-14</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>16</td>
+<td class="rank">88</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0FT7Q5726" target="_blank">B0FT7Q5726</a></td>
+<td class="brand">HUQPPQ</td>
+<td class="config">15.6寸 N5095 8G 256G 银色</td>
+<td class="title-cell" title="15.6 inch Laptop 8GB RAM 256GB SSD Celeron N5095, Full HD 1080P, Laptop Computer with Win11 Pro, 2MP Webcam, WiFi 5, BT4.2, USB3.0, Type-C, Numeric Keypad Laptops for Business and Students-Silver">15.6 inch Laptop 8GB RAM 256GB SSD Celeron N5095, Full HD 1080P, Laptop Computer...</td>
+<td class="price">£237.49</td>
+<td class="rating">⭐3.9</td>
+<td class="reviews">11</td>
+<td class="sales">88</td>
+<td class="date">2025-12-17</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>17</td>
+<td class="rank">95</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0FWKFMDL9" target="_blank">B0FWKFMDL9</a></td>
+<td class="brand">Txxren</td>
+<td class="config">15.6寸 i5 16G 512G</td>
+<td class="title-cell" title="Laptop 15.6 inch with Office 365, Notebook 16GB RAM 512GB SSD Celeron N95, Notebook 1920 * 1080 FHD WiFi5, Win 11 Pro Laptop with Touch ID Backlit Keyboard Laptops Computer">Laptop 15.6 inch with Office 365, Notebook 16GB RAM 512GB SSD Celeron N95, Noteb...</td>
+<td class="price">£289.99</td>
+<td class="rating">⭐3.6</td>
+<td class="reviews">10</td>
+<td class="sales">95</td>
+<td class="date">2025-12-08</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>18</td>
+<td class="rank">96</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0FV8MNC8Z" target="_blank">B0FV8MNC8Z</a></td>
+<td class="brand">DREAMFYRE</td>
+<td class="config">15.6寸 Ryzen 5 3500U 16G 512G 蓝色</td>
+<td class="title-cell" title="DREAMFYRE 15.6 Inch Laptop 16GB DDR4 512GB SSD, Ryzen 5 3500U Processor Gaming Laptop PC with Touch ID Laptops Computer Support 2.4/5G WiFi Bluetooth USB 3.0 x 2, Audio Jack x 1, HDMI x 1, Slot">DREAMFYRE 15.6 Inch Laptop 16GB DDR4 512GB SSD, Ryzen 5 3500U Processor Gaming L...</td>
+<td class="price">£276.00</td>
+<td class="rating">⭐3.9</td>
+<td class="reviews">49</td>
+<td class="sales">94</td>
+<td class="date">2025-10-27</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>19</td>
+<td class="rank">116</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GMGSCS9T" target="_blank">B0GMGSCS9T</a></td>
+<td class="brand">NAIKLULU</td>
+<td class="config">15.6寸 M3 16G 256G</td>
+<td class="title-cell" title="NAIKLULU 15.6 Inch 2026 Laptop M3-6Y30 Processor, 16GB RAM 256GB SSD Computer Laptop Pc FHD 1920 x 1080P, Wifi 5, 5000 MAh/38.5Wh, TF Card, Webcam, Student/Business">NAIKLULU 15.6 Inch 2026 Laptop M3-6Y30 Processor, 16GB RAM 256GB SSD Computer La...</td>
+<td class="price">£259.99</td>
+<td class="rating">⭐4.7</td>
+<td class="reviews">15</td>
+<td class="sales">160</td>
+<td class="date">2026-02-25</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>20</td>
+<td class="rank">131</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0G4GD41BV" target="_blank">B0G4GD41BV</a></td>
+<td class="brand">Tivique</td>
+<td class="config">16寸 Ryzen 4300U 16G 512G</td>
+<td class="title-cell" title="Tivique 2026 16 Inch FHD Laptop Ryzen 4300U Quad-Core (Processor Up to 3.7GHz) - 16GB RAM DDR4*2 + 512GB M.2 SSD, Support Dual-Band WiFi, HDMI,USB 3.2,BT 5.2, 1200 16:10 HD Display,5000mAh Long-Batter">Tivique 2026 16 Inch FHD Laptop Ryzen 4300U Quad-Core (Processor Up to 3.7GHz) -...</td>
+<td class="price">£299.99</td>
+<td class="rating">⭐4.7</td>
+<td class="reviews">4</td>
+<td class="sales">130</td>
+<td class="date">2026-01-04</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+</tbody></table>
+</div>
+<div id="GB-2in1" style="display:none">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">25</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0DP4P5YFG" target="_blank">B0DP4P5YFG</a></td>
+<td class="brand">LONGEVINCE</td>
+<td class="config">11寸 N100 16G 256G 玫瑰金</td>
+<td class="title-cell" title="LONGEVINCE 11“ 2-in-1 Touchscreen Laptop, N100 Laptops,16GB RAM,FHD 1920 * 1200 IPS,Win 11 Pro PC,Backlit Keyboard, WiFi,USB-C,HDMI,Oval Trackpad,computer (Rose Gold, 16G+256GB SSD)">LONGEVINCE 11“ 2-in-1 Touchscreen Laptop, N100 Laptops,16GB RAM,FHD 1920 * 1200 ...</td>
+<td class="price">£239.00</td>
+<td class="rating">⭐5</td>
+<td class="reviews">2</td>
+<td class="sales">11</td>
+<td class="date">2024-12-30</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">53</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0DFQBSQBL" target="_blank">B0DFQBSQBL</a></td>
+<td class="brand">KOOFORWAY</td>
+<td class="config">8寸 N150 12G 512G</td>
+<td class="title-cell" title="8“ Mini Laptop, 2-in-1 Small Computer N150, 12GB RAM, 512GB SSD, Touchscreen, Win 11 Pro, Wi-Fi 6, BT 5.2, Stylus Support, HDMI, Lightweight Portable Convertible PC">8“ Mini Laptop, 2-in-1 Small Computer N150, 12GB RAM, 512GB SSD, Touchscreen, Wi...</td>
+<td class="price">£449.00</td>
+<td class="rating">⭐4</td>
+<td class="reviews">270</td>
+<td class="sales">65</td>
+<td class="date">2025-02-12</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">66</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0H29T6DW1" target="_blank">B0H29T6DW1</a></td>
+<td class="brand">Generic</td>
+<td class="config">12寸 I5-7300U 16G 512G</td>
+<td class="title-cell" title="Tough-Book CF-33 MK1 Rugged 2-in-1 Detachable Laptop, Core i5-7300U vPro, 12” QHD 2160 x1440 1200-Nit Touchscreen, 16GB RAM, 512GB SSD, 4G LTE GPS, MIL-STD-810G, Win 11 Pro, IP65 Tablet PC">Tough-Book CF-33 MK1 Rugged 2-in-1 Detachable Laptop, Core i5-7300U vPro, 12” QH...</td>
+<td class="price">£0.00</td>
+<td class="rating">-</td>
+<td class="reviews">0</td>
+<td class="sales">11</td>
+<td class="date">2026-05-27</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">77</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0D46D7RQJ" target="_blank">B0D46D7RQJ</a></td>
+<td class="brand">Bigmachine</td>
+<td class="config">10寸 蓝色</td>
+<td class="title-cell" title="Laptop Computer Mini 10 Inch Quad Core Powered by Android 12 Netbook 64GB Small Computer with WiFi Webcam Bluetooth,Charger Mouse Included,Suitable for Children and Students, 4 Color Options (Blue)">Laptop Computer Mini 10 Inch Quad Core Powered by Android 12 Netbook 64GB Small ...</td>
+<td class="price">£139.00</td>
+<td class="rating">⭐3.1</td>
+<td class="reviews">16</td>
+<td class="sales">31</td>
+<td class="date">2024-07-29</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">93</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0GRBHHC1P" target="_blank">B0GRBHHC1P</a></td>
+<td class="brand">Generic</td>
+<td class="config">10.1寸 I5-7Y57 8G 256G</td>
+<td class="title-cell" title="CF-20 MK2 Rugged 2-in-1 Detachable Laptop Toughbook, Intel Core i5-7Y57 vPro, 10.1” WUXGA 800-Nit Sunlight-Readable Touchscreen, 8GB RAM, 256GB SSD, Win 11 Pro, IP65 & MIL-STD-810G Rugged Tablet PC">CF-20 MK2 Rugged 2-in-1 Detachable Laptop Toughbook, Intel Core i5-7Y57 vPro, 10...</td>
+<td class="price">£0.00</td>
+<td class="rating">-</td>
+<td class="reviews">0</td>
+<td class="sales">42</td>
+<td class="date">2026-03-06</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">109</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0D3GXWGCZ" target="_blank">B0D3GXWGCZ</a></td>
+<td class="brand">Tibuta</td>
+<td class="config">9寸 4G</td>
+<td class="title-cell" title="W100 Mini Laptop Windows 11 Processor 8 9 inch HD Touch Screen (1536 x 2048 IPS) with Detachable Keyboard 4GB RAM 64GB ROM Business Study and Entertainment (QWERTZ German)">W100 Mini Laptop Windows 11 Processor 8 9 inch HD Touch Screen (1536 x 2048 IPS)...</td>
+<td class="price">£132.99</td>
+<td class="rating">⭐3.1</td>
+<td class="reviews">20</td>
+<td class="sales">23</td>
+<td class="date">2024-05-11</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">127</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0DMZLL4Y1" target="_blank">B0DMZLL4Y1</a></td>
+<td class="brand">Bigmachine</td>
+<td class="config">10寸 2G 32G 粉色</td>
+<td class="title-cell" title="Bigmachine 10 Inch Windows 10 Computer Laptop, 2GB RAM, 32GB Storage, 6 Colours, 6000mAh Battery, Mouse and Charger Included, HDMI (Dark Pink)">Bigmachine 10 Inch Windows 10 Computer Laptop, 2GB RAM, 32GB Storage, 6 Colours,...</td>
+<td class="price">£169.00</td>
+<td class="rating">⭐2</td>
+<td class="reviews">1</td>
+<td class="sales">32</td>
+<td class="date">2025-02-17</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">135</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0DKYXTRH6" target="_blank">B0DKYXTRH6</a></td>
+<td class="brand">Entity</td>
+<td class="config">11.6寸 128G 黑色</td>
+<td class="title-cell" title="Entity Book 11.6 Targa 2 in 1 Convertible Laptop Touchscreen Tablet 128GB Black">Entity Book 11.6 Targa 2 in 1 Convertible Laptop Touchscreen Tablet 128GB Black</td>
+<td class="price">£189.69</td>
+<td class="rating">⭐2.5</td>
+<td class="reviews">4</td>
+<td class="sales">16</td>
+<td class="date">2024-10-28</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">183</td>
+<td class="asin"><a href="https://amazon.co.uk/dp/B0F32RD51P" target="_blank">B0F32RD51P</a></td>
+<td class="brand">EYY</td>
+<td class="config">15.6寸 Ryzen R3 3200U 16G 512G 黑色</td>
+<td class="title-cell" title="EYY 2 in 1 Laptop Computer, 15.6“ 16GB DDR4 512GB SSD Touchscreen Notebook, AMD Ryzen R3 3200U(Up to 3.5 GHz), Radeon Vega 3, 1920 x1080 FHD Display, Win 11 Pro, WiFi, BT5.1 RJ45, Blacklit Keyboard">EYY 2 in 1 Laptop Computer, 15.6“ 16GB DDR4 512GB SSD Touchscreen Notebook, AMD ...</td>
+<td class="price">£432.36</td>
+<td class="rating">⭐3.8</td>
+<td class="reviews">87</td>
+<td class="sales">8</td>
+<td class="date">2025-07-04</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="country-section" id="section-DE">
+<div id="DE-traditional" style="display:block">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">31</td>
+<td class="asin"><a href="https://amazon.de/dp/B0G26DSQK4" target="_blank">B0G26DSQK4</a></td>
+<td class="brand">Difinity</td>
+<td class="config">15.6寸 N5095 16G 512G 蓝色</td>
+<td class="title-cell" title="Laptop 15,6 Zoll Full-HD mit MS Office 2024 Pro - Celeron Quad N5095 4x2.90 GHz, 16GB DDR4, 512 GB SSD, UHD VGA, HDMI, Webcam, Bluetooth, USB 3, WLAN, Windows 11 Prof 64 Notebook - #8303">Laptop 15,6 Zoll Full-HD mit MS Office 2024 Pro - Celeron Quad N5095 4x2.90 GHz,...</td>
+<td class="price">€299.00</td>
+<td class="rating">⭐4</td>
+<td class="reviews">91</td>
+<td class="sales">216</td>
+<td class="date">2025-11-18</td>
+<td class="seller">🇩🇪 德国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">48</td>
+<td class="asin"><a href="https://amazon.de/dp/B0G3X1HJRD" target="_blank">B0G3X1HJRD</a></td>
+<td class="brand">Trygood</td>
+<td class="config">15.6寸 N5100 8G 256G</td>
+<td class="title-cell" title="Laptop 15,6 Zoll Full HD IPS Display | Notebook mit Fingerabdruck-ID & Beleuchteter Tastatur, 8GB RAM 256GB SSD, Intel Quad-Core N5100, Schlankes Design für Business, Uni & Home Office">Laptop 15,6 Zoll Full HD IPS Display | Notebook mit Fingerabdruck-ID & Beleuchte...</td>
+<td class="price">€254.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">25</td>
+<td class="sales">91</td>
+<td class="date">2025-12-02</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">50</td>
+<td class="asin"><a href="https://amazon.de/dp/B0GXV8G9XQ" target="_blank">B0GXV8G9XQ</a></td>
+<td class="brand">Auusda</td>
+<td class="config">17.3寸 AMD 3250C 8G 256G</td>
+<td class="title-cell" title="Auusda Laptop 17,3 Zoll Notebook, 8GB DDR4 RAM 256GB SSD, 3250C Prozessor, Fingerabdrucksensor, beleuchtete Tastatur, Ziffernblock, Privacy-Kameraabdeckung, leichtes Notebook für Schule & Büro">Auusda Laptop 17,3 Zoll Notebook, 8GB DDR4 RAM 256GB SSD, 3250C Prozessor, Finge...</td>
+<td class="price">€365.00</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">687</td>
+<td class="sales">316</td>
+<td class="date">1970-01-01</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">51</td>
+<td class="asin"><a href="https://amazon.de/dp/B0FZC5BZRL" target="_blank">B0FZC5BZRL</a></td>
+<td class="brand">GEEKOM</td>
+<td class="config">16寸 Ultra 9-185H 32G 2TB</td>
+<td class="title-cell" title="GEEKOM GeekBook X16 Pro Laptop, 1299g Metallgehäuse, 16“ 2.5K, Intel Core Ultra 9-185H, 32GB LPDDR5x 7500MT/s, 2TB SSD, USB4, Fingerabdrucksensor, DTS:X Ultra, bis zu 17h Akku, Copilot, Windows 11 Pro">GEEKOM GeekBook X16 Pro Laptop, 1299g Metallgehäuse, 16“ 2.5K, Intel Core Ultra ...</td>
+<td class="price">€1,449.00</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">78</td>
+<td class="sales">133</td>
+<td class="date">2026-01-05</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">53</td>
+<td class="asin"><a href="https://amazon.de/dp/B0FZCKTWS7" target="_blank">B0FZCKTWS7</a></td>
+<td class="brand">GEEKOM</td>
+<td class="config">14寸 Ultra 9-185H 32G 1TB</td>
+<td class="title-cell" title="GEEKOM GeekBook X14 Pro Laptop, 999 g Ultraleicht, 14“ 2.8K OLED, Ultra 9-185H, 32GB LPDDR5x RAM 7500MT/s, 1TB SSD, 2X USB4, Fingerprint & Webcam-Schieber, bis zu 16 h Akku, Copilot+, Windows 11 Pro">GEEKOM GeekBook X14 Pro Laptop, 999 g Ultraleicht, 14“ 2.8K OLED, Ultra 9-185H, ...</td>
+<td class="price">€1,249.00</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">90</td>
+<td class="sales">114</td>
+<td class="date">2025-12-29</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">58</td>
+<td class="asin"><a href="https://amazon.de/dp/B0DD37J8BX" target="_blank">B0DD37J8BX</a></td>
+<td class="brand">NOTODD</td>
+<td class="config">16寸 N5095 512G</td>
+<td class="title-cell" title="Gaming Laptop 16 Zoll Win11 12+512GB SSD Unterstützung 2TB(HDD-2TB) 1920 x1200 Notebook 4-Core Celeron N5095 (bis 2.9GHz) Laptop mit Nummerntastatur WiFi Mini HDMI Deutscher Tastaturschutz-Lila">Gaming Laptop 16 Zoll Win11 12+512GB SSD Unterstützung 2TB(HDD-2TB) 1920 x1200 N...</td>
+<td class="price">€299.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">152</td>
+<td class="sales">116</td>
+<td class="date">2024-09-22</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">59</td>
+<td class="asin"><a href="https://amazon.de/dp/B0FJS62ZFB" target="_blank">B0FJS62ZFB</a></td>
+<td class="brand">shinobee</td>
+<td class="config">15.6寸 N3450 8G 256G</td>
+<td class="title-cell" title="shinobee difinity Celeron Quad Core SSD (15,6 Zoll FullHD) lautloses Notebook (Celeron N3450 4x2.20 GHz, 8GB DDR4, 256 GB SSD, USB 3.0, HD Graphics 500, m-HDMI, Windows 11, MS Office) #8027">shinobee difinity Celeron Quad Core SSD (15,6 Zoll FullHD) lautloses Notebook (C...</td>
+<td class="price">€188.00</td>
+<td class="rating">⭐3.8</td>
+<td class="reviews">800</td>
+<td class="sales">95</td>
+<td class="date">2025-07-31</td>
+<td class="seller">🇩🇪 德国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">60</td>
+<td class="asin"><a href="https://amazon.de/dp/B0FX2Q7TBL" target="_blank">B0FX2Q7TBL</a></td>
+<td class="brand">Morostron</td>
+<td class="config">16寸 AMD A9 8G 256G</td>
+<td class="title-cell" title="16-Zoll-Laptop,8GB DDR RAM, 256GB SSD tragbarer Laptop,erweiterbar auf 1 TB,AMD A9-9400 Radeon R5 Prozessor bis zu 3,2 GHz,9000-mAh-Akku,USB-3.0-Schnittstelle,Dual-Band-WLAN, Webcam, schlankes Laptops">16-Zoll-Laptop,8GB DDR RAM, 256GB SSD tragbarer Laptop,erweiterbar auf 1 TB,AMD ...</td>
+<td class="price">€249.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">36</td>
+<td class="sales">114</td>
+<td class="date">2026-06-07</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">68</td>
+<td class="asin"><a href="https://amazon.de/dp/B0DCG17FMB" target="_blank">B0DCG17FMB</a></td>
+<td class="brand">Molegar</td>
+<td class="config">15.6寸 N95 16G 1TB</td>
+<td class="title-cell" title="Molegar 2026 FHD Laptop Student/Geschäft,15.6 Zoll Laptop Computer mit 16GB DDR4 1TB SSD,Quad-Core N95(Bis zu 3.4GHz,Beat N5095),8000mAh Großer,2.4/5G WiFi,Webcam,USB 3.0,Beleuchtete Tastatur">Molegar 2026 FHD Laptop Student/Geschäft,15.6 Zoll Laptop Computer mit 16GB DDR4...</td>
+<td class="price">€319.99</td>
+<td class="rating">⭐3.8</td>
+<td class="reviews">138</td>
+<td class="sales">94</td>
+<td class="date">2024-08-30</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">75</td>
+<td class="asin"><a href="https://amazon.de/dp/B0GS1MQN5P" target="_blank">B0GS1MQN5P</a></td>
+<td class="brand">Tivique</td>
+<td class="config">15.6寸 Ryzen 7 5700U 16G 512G</td>
+<td class="title-cell" title="Laptop - 2026 Neueste 15.6 Zoll FHD Display Laptop mit Ryzen 7 5700U Prozessor bis zu 4.3GHz, 16GB Ram DDR4 512GB NVMe PCIe 3.0 SSD Notebook, Leichtgewicht">Laptop - 2026 Neueste 15.6 Zoll FHD Display Laptop mit Ryzen 7 5700U Prozessor b...</td>
+<td class="price">€459.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">27</td>
+<td class="sales">68</td>
+<td class="date">2026-03-19</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>11</td>
+<td class="rank">89</td>
+<td class="asin"><a href="https://amazon.de/dp/B0GR57VS6T" target="_blank">B0GR57VS6T</a></td>
+<td class="brand">Tivique</td>
+<td class="config">16寸 I7-11800H 16G 512G</td>
+<td class="title-cell" title="Gaming Laptop – 16 Zoll FHD Display Laptop mit AMD Ryzen 7 H255-Prozessor (Besser als I7-11800H) mit bis zu 4,9 GHz, 16 GB RAM DDR5 4800 MHz, 512 GB SSD, Gaming Notebook mit hintergrundbeleuc">Gaming Laptop – 16 Zoll FHD Display Laptop mit AMD Ryzen 7 H255-Prozessor (Besse...</td>
+<td class="price">€579.99</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">10</td>
+<td class="sales">65</td>
+<td class="date">2026-03-18</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>12</td>
+<td class="rank">92</td>
+<td class="asin"><a href="https://amazon.de/dp/B0G6S23BK2" target="_blank">B0G6S23BK2</a></td>
+<td class="brand">Pryloxen</td>
+<td class="config">15.6寸 AMD 3050E 16G 512G</td>
+<td class="title-cell" title="Laptop 15.6 Zoll Rosa, 16GB RAM 512GB SSD, Dual-Core 3050E (bis zu 2.80 GHz), Notebook Mit Fingerabdrucksensor, Illuminated Keyboard, Doppellautsprecher, HDMI, Laptop für Schüler und Büro">Laptop 15.6 Zoll Rosa, 16GB RAM 512GB SSD, Dual-Core 3050E (bis zu 2.80 GHz), No...</td>
+<td class="price">€267.75</td>
+<td class="rating">⭐3.9</td>
+<td class="reviews">10</td>
+<td class="sales">80</td>
+<td class="date">2025-12-25</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>13</td>
+<td class="rank">155</td>
+<td class="asin"><a href="https://amazon.de/dp/B0FVXKWYTK" target="_blank">B0FVXKWYTK</a></td>
+<td class="brand">Tivique</td>
+<td class="config">15.6寸 Ryzen 7 7730U 16G 512G</td>
+<td class="title-cell" title="Gaming Laptop | 15,6 Zoll Notebook | AMD Ryzen 7 7730U | Bis zu 4.5GHz|16GB RAM | 512GB SSD | AMD Radeon | NVMe PCIe 3.0 | WiFi6 | HDMI">Gaming Laptop | 15,6 Zoll Notebook | AMD Ryzen 7 7730U | Bis zu 4.5GHz|16GB RAM ...</td>
+<td class="price">€499.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">14</td>
+<td class="sales">113</td>
+<td class="date">2025-11-17</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+</tbody></table>
+</div>
+<div id="DE-2in1" style="display:none">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">14</td>
+<td class="asin"><a href="https://amazon.de/dp/B0FMRRVM16" target="_blank">B0FMRRVM16</a></td>
+<td class="brand">BEYNIVAN</td>
+<td class="config">15.6寸 N95 16G 512G</td>
+<td class="title-cell" title="PC Portable 15,6 Zoll,16GB DDR4 512GB SSD TF 1TB, Laptop Win 11,N95 (bis zu 3,4 GHz),1920 x1080 FHD, WiFi 5, USB 3.0, Gamer Computer Notebook,Klavier komplette Rückbeleuchtung">PC Portable 15,6 Zoll,16GB DDR4 512GB SSD TF 1TB, Laptop Win 11,N95 (bis zu 3,4 ...</td>
+<td class="price">€349.98</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">44</td>
+<td class="sales">77</td>
+<td class="date">2025-11-21</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">19</td>
+<td class="asin"><a href="https://amazon.de/dp/B0C7ZYTKYC" target="_blank">B0C7ZYTKYC</a></td>
+<td class="brand">SZTPS</td>
+<td class="config">11.6寸 Celeron 8G 256G 蓝色</td>
+<td class="title-cell" title="SZTPS Tablets Windows 11 mit Tastatur, 2 in 1 Tablet PC Windows Tablet Laptop 11.6 Inches Notebook,Celeron 8 GB RAM 256GB SSD, FHD IPS 1920 x1080, 2.4G+5G WiFi, Bluetooth, Type C, HDMI, QWERTY">SZTPS Tablets Windows 11 mit Tastatur, 2 in 1 Tablet PC Windows Tablet Laptop 11...</td>
+<td class="price">€299.00</td>
+<td class="rating">⭐2.9</td>
+<td class="reviews">88</td>
+<td class="sales">18</td>
+<td class="date">2023-08-26</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">27</td>
+<td class="asin"><a href="https://amazon.de/dp/B0F83PZYQ1" target="_blank">B0F83PZYQ1</a></td>
+<td class="brand">AWOW</td>
+<td class="config">10.1寸 N95 12G 256G</td>
+<td class="title-cell" title="AWOW AIBOOK 11 10,1 Zoll 2-in-1 Tablet PC mit Deutsch-Tastatur – 12GB LPDDR5 RAM, 256GB PCIE3.0 SSD,Alder Lake N95, Touchscreen, Dual-Band WiFi, USB-C, HDMI, 8MP Kamera">AWOW AIBOOK 11 10,1 Zoll 2-in-1 Tablet PC mit Deutsch-Tastatur – 12GB LPDDR5 RAM...</td>
+<td class="price">€339.99</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">59</td>
+<td class="sales">91</td>
+<td class="date">2025-08-04</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">31</td>
+<td class="asin"><a href="https://amazon.de/dp/B0F9P845T2" target="_blank">B0F9P845T2</a></td>
+<td class="brand">KOOSMILE</td>
+<td class="config">8寸 N95 12G 1TB</td>
+<td class="title-cell" title="KOOSMILE 8“ Touchscreen Laptop, Mini Laptops 2 in 1 Laptop mit Tastatur 12 GB LPDDR5-RAM, 512 GB/1 TB SSD, Wi-Fi 6, BT 5.2, HDMI, 2-MP-Kamera, Convertible Computer(N95-12GB+512GB)">KOOSMILE 8“ Touchscreen Laptop, Mini Laptops 2 in 1 Laptop mit Tastatur 12 GB LP...</td>
+<td class="price">€469.00</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">281</td>
+<td class="sales">64</td>
+<td class="date">2025-06-26</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">34</td>
+<td class="asin"><a href="https://amazon.de/dp/B0DFQBSQBL" target="_blank">B0DFQBSQBL</a></td>
+<td class="brand">KOOFORWAY</td>
+<td class="config">8寸 N150 12G 1TB</td>
+<td class="title-cell" title="8-Zoll 2-in-1 Mini-Laptop mit QWERTZ-Tastatur, drehbarem HD-Touchscreen & Stiftunterstützung, Windows 11 Pro, N150/N95, 12GB RAM, 1TB SSD, Wi-Fi 6, BT 5.2, HDMI, Typ-C, 2MP Kamera (N95(12GB-512GB))">8-Zoll 2-in-1 Mini-Laptop mit QWERTZ-Tastatur, drehbarem HD-Touchscreen & Stiftu...</td>
+<td class="price">€449.00</td>
+<td class="rating">⭐4</td>
+<td class="reviews">269</td>
+<td class="sales">81</td>
+<td class="date">2025-02-05</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">35</td>
+<td class="asin"><a href="https://amazon.de/dp/B0H1MWC2NC" target="_blank">B0H1MWC2NC</a></td>
+<td class="brand">Fsjun</td>
+<td class="config">11寸 N100 16G 1TB 金色</td>
+<td class="title-cell" title="Fsjun 2026 11 Zoll 2in1 Laptop mit 360° Touchscreen, N100 Quad-Core CPU [beat N95 / N5095], 16GB DDR4 RAM, 1TB SSD, FHD IPS Display, Backlit Tastatur, leicht & mobil Notebook PC, Roségold">Fsjun 2026 11 Zoll 2in1 Laptop mit 360° Touchscreen, N100 Quad-Core CPU [beat N9...</td>
+<td class="price">€458.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">3</td>
+<td class="sales">66</td>
+<td class="date">2026-05-15</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">40</td>
+<td class="asin"><a href="https://amazon.de/dp/B0DGLKYBK5" target="_blank">B0DGLKYBK5</a></td>
+<td class="brand">KOOTIGERS</td>
+<td class="config">8寸 N150 12G 512G</td>
+<td class="title-cell" title="KOOTIGERS Mini Laptop 8“ 2-in-1, Win 11, N150 (3,6 GHz), 12 GB RAM 512 GB SSD, Touchscreen HD, beleuchtete Tastatur, Wi-Fi 6, USB-C, Leichter PC für Arbeit/Kinder/Schule">KOOTIGERS Mini Laptop 8“ 2-in-1, Win 11, N150 (3,6 GHz), 12 GB RAM 512 GB SSD, T...</td>
+<td class="price">€469.00</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">63</td>
+<td class="sales">41</td>
+<td class="date">2026-01-08</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">56</td>
+<td class="asin"><a href="https://amazon.de/dp/B0F8WL4PZN" target="_blank">B0F8WL4PZN</a></td>
+<td class="brand">Terra</td>
+<td class="config">17寸 I5-1334U 16G 500G</td>
+<td class="title-cell" title="Terra Mobile 1716R i5-1334U Windows 11 Pro, 16 GB RAM, 500 GB SSD Notebook mit DVD-Laufwerk 17 Zoll">Terra Mobile 1716R i5-1334U Windows 11 Pro, 16 GB RAM, 500 GB SSD Notebook mit D...</td>
+<td class="price">€851.62</td>
+<td class="rating">⭐5</td>
+<td class="reviews">1</td>
+<td class="sales">39</td>
+<td class="date">2025-05-19</td>
+<td class="seller">🇩🇪 德国</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">60</td>
+<td class="asin"><a href="https://amazon.de/dp/B0DZY1BCSR" target="_blank">B0DZY1BCSR</a></td>
+<td class="brand">GPD</td>
+<td class="config">8.8寸 Ryzen Ai 9 32G 2TB 蓝色</td>
+<td class="title-cell" title="GPD Pocket 4: Mini-Laptop mit AMD Ryzen AI 9 HX 370 CPU, Radeon 890M GPU, 32GB LPDDR5X RAM, 2TB PCIe Gen4 SSD, 8,8 Zoll 2,5K 144Hz Display, Wi-Fi 6E, Bluetooth 5.3, Modularer AI Handheld PC">GPD Pocket 4: Mini-Laptop mit AMD Ryzen AI 9 HX 370 CPU, Radeon 890M GPU, 32GB L...</td>
+<td class="price">€2,142.95</td>
+<td class="rating">⭐3.7</td>
+<td class="reviews">14</td>
+<td class="sales">12</td>
+<td class="date">2025-07-15</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">67</td>
+<td class="asin"><a href="https://amazon.de/dp/B0F48G7RM2" target="_blank">B0F48G7RM2</a></td>
+<td class="brand">BNCF</td>
+<td class="config">11寸 N150 12G 512G</td>
+<td class="title-cell" title="BNCF NewBook 11 2-in-1 Laptop Tablet, Twin Lake N150 12GB RAM LPDDR5 512GB SSD, Win 11 Pro 11“ FHD Touchscreen PC, Micro HDMI mit Pogo Pin Magnet-Tastatur & Kickstand">BNCF NewBook 11 2-in-1 Laptop Tablet, Twin Lake N150 12GB RAM LPDDR5 512GB SSD, ...</td>
+<td class="price">€369.99</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">201</td>
+<td class="sales">22</td>
+<td class="date">2025-07-03</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>11</td>
+<td class="rank">94</td>
+<td class="asin"><a href="https://amazon.de/dp/B0G3XP3TK1" target="_blank">B0G3XP3TK1</a></td>
+<td class="brand">GMR</td>
+<td class="config">i5 16G 1TB 蓝色</td>
+<td class="title-cell" title="GMR Ultra i5 Office PC - Business Office Computer | 3 Jahre Garantie | 16 GB RAM | 1000GB SSD M.2 | DVD±RW | USB 3 | Windows 11 Pro | WiFi-Bluetooth">GMR Ultra i5 Office PC - Business Office Computer | 3 Jahre Garantie | 16 GB RAM...</td>
+<td class="price">€699.00</td>
+<td class="rating">⭐3.4</td>
+<td class="reviews">282</td>
+<td class="sales">97</td>
+<td class="date">2025-12-02</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>12</td>
+<td class="rank">96</td>
+<td class="asin"><a href="https://amazon.de/dp/B0F9YYHF3X" target="_blank">B0F9YYHF3X</a></td>
+<td class="brand">HAICOTECH</td>
+<td class="config">8寸 N150 12G 1TB</td>
+<td class="title-cell" title="8 Zoll Mini-Laptop N150 Touchscreen Notebook Tablet 2-in-1 Handheld-Computer Kleiner Pocket-PC Win-11 Pro, 12 GB RAM 1 TB SSD, Gigabit/Wi-Fi 6/BT5.2/2MP Kamera/G-Sensor/HDMI/PD 30W Aufladung/QWERTY">8 Zoll Mini-Laptop N150 Touchscreen Notebook Tablet 2-in-1 Handheld-Computer Kle...</td>
+<td class="price">€548.68</td>
+<td class="rating">⭐5</td>
+<td class="reviews">2</td>
+<td class="sales">8</td>
+<td class="date">2025-06-02</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>13</td>
+<td class="rank">113</td>
+<td class="asin"><a href="https://amazon.de/dp/B0F4QDPS21" target="_blank">B0F4QDPS21</a></td>
+<td class="brand">GPD</td>
+<td class="config">8.8寸 Ryzen Ai 9 32G 2TB</td>
+<td class="title-cell" title="GPD Pocket 4 (AI 9 HX370) – Ultra Mobile PC aus Aluminium mit Windows 11, 8,8 Zoll (20,6 cm) Ultra HD Display, 180° drehbar, Ryzen AI 9 HX370, 32 GB LPDDR5x, 2 TB NVMe SSD, Wi-Fi 6E, 2.5G Ethernet">GPD Pocket 4 (AI 9 HX370) – Ultra Mobile PC aus Aluminium mit Windows 11, 8,8 Zo...</td>
+<td class="price">€2,099.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">7</td>
+<td class="sales">15</td>
+<td class="date">2025-04-20</td>
+<td class="seller">🇮🇹 意大利</td>
+</tr>
+<tr>
+<td>14</td>
+<td class="rank">154</td>
+<td class="asin"><a href="https://amazon.de/dp/B0FN82N3C6" target="_blank">B0FN82N3C6</a></td>
+<td class="brand">BNCF</td>
+<td class="config">11寸 N150 12G 512G</td>
+<td class="title-cell" title="BNCF 11 Zoll 2-in-1 Laptops, Win 11 Touchscreen PC kompatibel mit Alder Lake N150, 12GB RAM 512GB SSD, 1920 x1200 IPS FHD Tablet USB-C/HDMI WiFi 6 mit magnetischer Tastatur und Kickstand">BNCF 11 Zoll 2-in-1 Laptops, Win 11 Touchscreen PC kompatibel mit Alder Lake N15...</td>
+<td class="price">€798.41</td>
+<td class="rating">⭐3.4</td>
+<td class="reviews">166</td>
+<td class="sales">5</td>
+<td class="date">2025-09-20</td>
+<td class="seller">🇹🇷 土耳其</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="country-section" id="section-CA">
+<div id="CA-traditional" style="display:block">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">6</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GZ21Z24C" target="_blank">B0GZ21Z24C</a></td>
+<td class="brand">Phatom</td>
+<td class="config">15.6寸 Pentium 4G 128G 金色</td>
+<td class="title-cell" title="Phatom 15.6“ FHD Laptop, Windows 11, Pentium Gold, 4GB RAM, 128GB SSD, Cooling Fan, HDMI, Silver, for Student and Business (Silver Gray)">Phatom 15.6“ FHD Laptop, Windows 11, Pentium Gold, 4GB RAM, 128GB SSD, Cooling F...</td>
+<td class="price">C$289.99</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">144</td>
+<td class="sales">237</td>
+<td class="date">2026-05-01</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">10</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GSTTLDLS" target="_blank">B0GSTTLDLS</a></td>
+<td class="brand">Exilapsire</td>
+<td class="config">16寸 i5 8G 256G</td>
+<td class="title-cell" title="16-inch Laptop Computer with Win11, 8GB RAM 256GB SSD Expandable 1TB, AMD A9 Processor 3.2GHz, Numpad, USB3.0, WiFi5, BT5.0, Webcam, Type-C, for Students and Business">16-inch Laptop Computer with Win11, 8GB RAM 256GB SSD Expandable 1TB, AMD A9 Pro...</td>
+<td class="price">C$369.99</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">20</td>
+<td class="sales">106</td>
+<td class="date">2026-05-14</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">13</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GTKXH5LP" target="_blank">B0GTKXH5LP</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">15.6寸 I5-12600H 16G 512G</td>
+<td class="title-cell" title="ACEMAGIC Gaming Laptop Intel Core i5-12600H Laptop Computers, 15.6-in 16GB DDR4 512GB NVMe SSD Intel Laptops Notebook-PC, Numeric Keypad WiFi 6 Win-11 Pro BT5.2 HDMI Type-C USB-3.2 Webcam 3.5mm Audio">ACEMAGIC Gaming Laptop Intel Core i5-12600H Laptop Computers, 15.6-in 16GB DDR4 ...</td>
+<td class="price">C$677.99</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">110</td>
+<td class="sales">71</td>
+<td class="date">2026-04-10</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">14</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GZVNQPBD" target="_blank">B0GZVNQPBD</a></td>
+<td class="brand">AKCHART</td>
+<td class="config">18.5寸 i3 16G 1TB 黑色</td>
+<td class="title-cell" title="18.5“ Laptop 16GB RAM 1024GB SSD, Core i3, Win 11 Home, 180°Open Angle, 8000mAh, Full-Featured Type-C, WiFi 6, HDMI, Portable Computer for Business & Students(Black)">18.5“ Laptop 16GB RAM 1024GB SSD, Core i3, Win 11 Home, 180°Open Angle, 8000mAh,...</td>
+<td class="price">C$1,099.99</td>
+<td class="rating">⭐4.8</td>
+<td class="reviews">15</td>
+<td class="sales">191</td>
+<td class="date">2026-05-16</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">15</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GQ8SW2J7" target="_blank">B0GQ8SW2J7</a></td>
+<td class="brand">OTVOC</td>
+<td class="config">15.6寸 i5 4G 128G</td>
+<td class="title-cell" title="Laptop Computer 15.6 inch, Compatible with Windows 11, Core i5 Processor, Up to 3.3GHz, 4GB RAM, 128GB SSD, Up to 2TB, 15.6“ FHD IPS 1920 x1080, for Students, Business">Laptop Computer 15.6 inch, Compatible with Windows 11, Core i5 Processor, Up to ...</td>
+<td class="price">C$319.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">39</td>
+<td class="sales">133</td>
+<td class="date">2026-04-22</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">16</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0H1N1YSXQ" target="_blank">B0H1N1YSXQ</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">15.6寸 Ryzen Embedded R2544 16G 512G</td>
+<td class="title-cell" title="ACEMAGIC Laptop AMD Ryzen Embedded R2544 15.6-in 16GB DDR4 512GB SSD, AMD Laptops Ordinateur-Portable Windows Laptops, Numeric Keypad Win-11 Pro WiFi 5 HDMI Type-C USB-3.2 Webcam 3.5mm Audio">ACEMAGIC Laptop AMD Ryzen Embedded R2544 15.6-in 16GB DDR4 512GB SSD, AMD Laptop...</td>
+<td class="price">C$569.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">21</td>
+<td class="sales">23</td>
+<td class="date">2026-05-22</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">22</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GXYWPGC4" target="_blank">B0GXYWPGC4</a></td>
+<td class="brand">ZAQTG</td>
+<td class="config">15.6寸 Ryzen 5 3500U 16G 512G 红色</td>
+<td class="title-cell" title="15.6 Inch Windows 11 Laptop, AMD Ryzen 5 3500U(Up to 3.6GHz), 16GB DDR4 RAM 512GB SSD, Backlit Keyboard, 5500mAh Battery, Full-Featured Type-C, WiFi 6, FHD IPS, Business Student Notebook">15.6 Inch Windows 11 Laptop, AMD Ryzen 5 3500U(Up to 3.6GHz), 16GB DDR4 RAM 512G...</td>
+<td class="price">C$499.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">21</td>
+<td class="sales">19</td>
+<td class="date">2026-05-08</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">27</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GTQ7D3C2" target="_blank">B0GTQ7D3C2</a></td>
+<td class="brand">MELIUNA</td>
+<td class="config">15.6寸 Ryzen 5 16G 512G 红色</td>
+<td class="title-cell" title="15.6 Inch Computer Laptop, AI Software AMD Ryzen 5 Processor (Up to 3.6GHz), 16GB DDR4 512GB SSD Windows 11 Laptop with Backlit Keyboard Ordinateur Portable, Full-Featured Type-C">15.6 Inch Computer Laptop, AI Software AMD Ryzen 5 Processor (Up to 3.6GHz), 16G...</td>
+<td class="price">C$474.99</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">19</td>
+<td class="sales">89</td>
+<td class="date">2026-05-05</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">37</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0H1V2MRMT" target="_blank">B0H1V2MRMT</a></td>
+<td class="brand">AKCHART</td>
+<td class="config">18.5寸 i3 16G 1TB 红色</td>
+<td class="title-cell" title="Windows 11 Laptop, 18.5 Inch Laptops with 16GB RAM 1TB SSD, Core i3(Up to 3.9GHz), Full-Featured Type-C, WiFi 6, 8000mAh, HDMI, Business Student Computer for Work, School(Gary)">Windows 11 Laptop, 18.5 Inch Laptops with 16GB RAM 1TB SSD, Core i3(Up to 3.9GHz...</td>
+<td class="price">C$599.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">8</td>
+<td class="sales">16</td>
+<td class="date">2026-05-15</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">48</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GV448C45" target="_blank">B0GV448C45</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">17.3寸 Ryzen 3 4300U 16G 512G</td>
+<td class="title-cell" title="ACEMAGIC AX17PRO Laptop 17.3“ FHD Display – AMD Ryzen 3 4300U (Up to 3.7GHz), 16GB DDR4 RAM, 512GB SSD, 62.7Wh, Wi-Fi 5, Windows 11 Pro – Perfect for Multitasking, Home & Office">ACEMAGIC AX17PRO Laptop 17.3“ FHD Display – AMD Ryzen 3 4300U (Up to 3.7GHz), 16...</td>
+<td class="price">C$569.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">5</td>
+<td class="sales">90</td>
+<td class="date">2026-04-22</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>11</td>
+<td class="rank">49</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0DRD4P14G" target="_blank">B0DRD4P14G</a></td>
+<td class="brand">NOTODD</td>
+<td class="config">14寸 N5095 8G 256G 金色</td>
+<td class="title-cell" title="14 Inch Laptop Computer Win 11 Laptops Celeron N5095 with 8GB RAM 256GB SSD Up to 1TBSSD Expand Type-C Cooling Fan Dual WiFiWebcam Portable Laptop for StudentsBusiness Home Office-Gold">14 Inch Laptop Computer Win 11 Laptops Celeron N5095 with 8GB RAM 256GB SSD Up t...</td>
+<td class="price">C$389.99</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">25</td>
+<td class="sales">10</td>
+<td class="date">2025-01-04</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>12</td>
+<td class="rank">50</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0DKBMYR9B" target="_blank">B0DKBMYR9B</a></td>
+<td class="brand">NOTODD</td>
+<td class="config">16寸 N5095 12G 512G 紫色</td>
+<td class="title-cell" title="NOTODD Gaming Laptop 16“ Win 11 Laptop Computer, 12GB LPDDR4 RAM 512GB SSD, Celeron N5095 Up to 2.9GHz, 2K 1920×1200 Display, Cooling Fan, Expandable Storage, PC for Gaming,Business, Study - Purple">NOTODD Gaming Laptop 16“ Win 11 Laptop Computer, 12GB LPDDR4 RAM 512GB SSD, Cele...</td>
+<td class="price">C$419.89</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">324</td>
+<td class="sales">20</td>
+<td class="date">2024-12-03</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>13</td>
+<td class="rank">51</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GXKF5C3Y" target="_blank">B0GXKF5C3Y</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">16寸 Ryzen 7 16G 512G</td>
+<td class="title-cell" title="ACEMAGIC Gaming Laptop AMD Ryzen 7 H255 16-in Radeon 780M 16GB DDR5 512GB NVMe SSD, Ultra Laptops AMD laptops Windows Laptops, Backlit Keypad WiFi 6 Win-11 Pro HDMI Type-C USB-3.2 Webcam Dual Fans">ACEMAGIC Gaming Laptop AMD Ryzen 7 H255 16-in Radeon 780M 16GB DDR5 512GB NVMe S...</td>
+<td class="price">C$888.99</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">21</td>
+<td class="sales">35</td>
+<td class="date">2026-04-22</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>14</td>
+<td class="rank">53</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GY8MZSPQ" target="_blank">B0GY8MZSPQ</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">15.6寸 Ryzen 5 7430U 16G 512G</td>
+<td class="title-cell" title="ACEMAGIC LX15PRO Light Gaming Laptop 15.6“ FHD - AMD Ryzen 5 7430U (6C/12T up to 4.3GHz), 16GB RAM 512GB SSD,WiFi 6, 2× Type-C (Data/PD/4K), Win11 Pro | for Work & Light Gaming & Students">ACEMAGIC LX15PRO Light Gaming Laptop 15.6“ FHD - AMD Ryzen 5 7430U (6C/12T up to...</td>
+<td class="price">C$626.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">34</td>
+<td class="sales">26</td>
+<td class="date">2026-05-07</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>15</td>
+<td class="rank">63</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0CSWGVRD2" target="_blank">B0CSWGVRD2</a></td>
+<td class="brand">Svikou</td>
+<td class="config">14寸 Celeron 8G 128G 玫瑰金</td>
+<td class="title-cell" title="14“ Rose Gold FHD IPS Display Ultra-Thin Laptop, Win 11, Celeron J4105 (1.1-2.6GHz), 8GB DDR4 RAM, 128GB SSD, 180° Opening, 2 USB3.0, WiFi/BT, Perfect for Travel, Study and Work (P128GB)">14“ Rose Gold FHD IPS Display Ultra-Thin Laptop, Win 11, Celeron J4105 (1.1-2.6G...</td>
+<td class="price">C$299.99</td>
+<td class="rating">⭐3.6</td>
+<td class="reviews">88</td>
+<td class="sales">32</td>
+<td class="date">2024-01-24</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>16</td>
+<td class="rank">67</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GSYVJCBH" target="_blank">B0GSYVJCBH</a></td>
+<td class="brand">Auusda</td>
+<td class="config">15.6寸 16G 512G 粉色</td>
+<td class="title-cell" title="Auusda 2026 15.6“ FHD Laptop, 16GB RAM 512GB SSD, Win11 Compatible PC, Backlit Keyboard, Fingerprint Sensor, Type-C, Up to 8TB Storage, 6000mAh, Dual Core Processor, Business & Student Laptop, Pink">Auusda 2026 15.6“ FHD Laptop, 16GB RAM 512GB SSD, Win11 Compatible PC, Backlit K...</td>
+<td class="price">C$579.59</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">37</td>
+<td class="sales">20</td>
+<td class="date">2026-04-24</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>17</td>
+<td class="rank">68</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GGHKL72R" target="_blank">B0GGHKL72R</a></td>
+<td class="brand">AocBook</td>
+<td class="config">15.6寸 Pentium 16G 256G 金色</td>
+<td class="title-cell" title="15.6“ Slim Laptop, Pentium Gold 6500Y Processor up to 3.4GHz, Win 11, 16GB RAM, 256GB SSD, FHD 1920×1080 IPS Display, Backlit Keyboard, Fingerprint Unlock, Portable Notebook for Study & Daily Use">15.6“ Slim Laptop, Pentium Gold 6500Y Processor up to 3.4GHz, Win 11, 16GB RAM, ...</td>
+<td class="price">C$399.90</td>
+<td class="rating">⭐3.7</td>
+<td class="reviews">8</td>
+<td class="sales">30</td>
+<td class="date">2026-03-11</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>18</td>
+<td class="rank">71</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GRB5CFYK" target="_blank">B0GRB5CFYK</a></td>
+<td class="brand">KAIGERR</td>
+<td class="config">17.3寸 Ryzen 3 4300U 16G 512G</td>
+<td class="title-cell" title="KAIGERR Laptop AMD Ryzen 3 4300U 17.3-in (Beat R5-3500U) 16GB DDR4 512GB SSD, Windows Laptops Ordinateur-Portable AMD Laptops, Numeric Keypad Win-11 Pro WiFi 5 HDMI Type-C USB-3.2 Webcam 3.5mm Audio">KAIGERR Laptop AMD Ryzen 3 4300U 17.3-in (Beat R5-3500U) 16GB DDR4 512GB SSD, Wi...</td>
+<td class="price">C$499.99</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">44</td>
+<td class="sales">20</td>
+<td class="date">2026-03-10</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>19</td>
+<td class="rank">74</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GTPYTGTC" target="_blank">B0GTPYTGTC</a></td>
+<td class="brand">AKCHART</td>
+<td class="config">18.5寸 i3 16G 1TB 灰色</td>
+<td class="title-cell" title="AKCHART 18.5“ Laptop 16GB RAM 1024GB SSD, Core i3, Win 11 Home, 180°Open Angle, 8000mAh, Full-Featured Type-C, WiFi 6, HDMI, Portable Computer for Business & Students(Gray)">AKCHART 18.5“ Laptop 16GB RAM 1024GB SSD, Core i3, Win 11 Home, 180°Open Angle, ...</td>
+<td class="price">C$1,099.99</td>
+<td class="rating">⭐3.8</td>
+<td class="reviews">7</td>
+<td class="sales">124</td>
+<td class="date">2026-04-28</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>20</td>
+<td class="rank">82</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GGMYX7Y1" target="_blank">B0GGMYX7Y1</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">15.6寸 Ryzen 7 5825U 16G 1TB</td>
+<td class="title-cell" title="ACEMAGIC Gaming Laptop AMD Ryzen 7 5825U AMD Laptops, 15.6-in 16GB DDR4 1TB NVMe SSD Notebook-Computer, Numeric Keypad WiFi 6 Win-11 Pro BT5.2 HDMI Type-C USB-3.2 Webcam 3.5mm Audio Ultra Laptops">ACEMAGIC Gaming Laptop AMD Ryzen 7 5825U AMD Laptops, 15.6-in 16GB DDR4 1TB NVMe...</td>
+<td class="price">C$747.99</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">205</td>
+<td class="sales">101</td>
+<td class="date">2026-01-26</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>21</td>
+<td class="rank">83</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GWDCKKRV" target="_blank">B0GWDCKKRV</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">18.5寸 Ryzen 3 4300U 16G 512G</td>
+<td class="title-cell" title="ACEMAGIC Laptop AMD Ryzen 3 4300U 18.5-in (Beat R5-3500U) 16GB DDR4 512GB SSD, AMD Laptops Windows Laptops Ultra Laptop, 8000mAh Numeric Keypad Win-11 Pro WiFi 5 HDMI Type-C USB3.2 Webcam 3.5mm Audio">ACEMAGIC Laptop AMD Ryzen 3 4300U 18.5-in (Beat R5-3500U) 16GB DDR4 512GB SSD, A...</td>
+<td class="price">C$639.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">28</td>
+<td class="sales">85</td>
+<td class="date">2026-04-12</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>22</td>
+<td class="rank">84</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GR8XTDFN" target="_blank">B0GR8XTDFN</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">15.6寸 Ryzen 7 5700U 16G 512G</td>
+<td class="title-cell" title="ACEMAGIC 2026 Light Gaming Laptop AMD Ryzen 7 5700U (8C/16T), 15.6“FHD Display,16GB RAM 512GB NVMe SSD, WiFi 6, Numeric Keyboard, Type_C, 54.72Wh Battery | Windows 11 Pro Laptop for Work & Play">ACEMAGIC 2026 Light Gaming Laptop AMD Ryzen 7 5700U (8C/16T), 15.6“FHD Display,1...</td>
+<td class="price">C$593.99</td>
+<td class="rating">⭐3.7</td>
+<td class="reviews">20</td>
+<td class="sales">76</td>
+<td class="date">2026-03-23</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>23</td>
+<td class="rank">84</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GJX9TMQ3" target="_blank">B0GJX9TMQ3</a></td>
+<td class="brand">TRHRO</td>
+<td class="config">15.6寸 i5 12G 256G 粉色</td>
+<td class="title-cell" title="Pink Laptop 15.6 Inch, 12GB RAM 256GB SSD, Pentium 6500Y Up to 3.4GHz, 1080P FHD IPS Screen, USB C, USB 3.2, HDMI, WiFi5, BT5.2, Computer Laptops for Student, Business, Home">Pink Laptop 15.6 Inch, 12GB RAM 256GB SSD, Pentium 6500Y Up to 3.4GHz, 1080P FHD...</td>
+<td class="price">C$399.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">1</td>
+<td class="sales">7</td>
+<td class="date">2026-03-21</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>24</td>
+<td class="rank">93</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GTLGGT4X" target="_blank">B0GTLGGT4X</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">18.5寸 N150 16G 512G</td>
+<td class="title-cell" title="ACEMAGIC Laptop Ιntel N150 18.5-in 16GB DDR4 512GB SSD Intel Laptops, Windows Laptops Notebook-PC Ordinateur Portable Ultra Laptop, 8000mAh Numeric Keypad Win-11 Pro WiFi 5 HDMI Type-C USB3.2 Webcam">ACEMAGIC Laptop Ιntel N150 18.5-in 16GB DDR4 512GB SSD Intel Laptops, Windows La...</td>
+<td class="price">C$849.99</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">19</td>
+<td class="sales">43</td>
+<td class="date">2026-04-10</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+</tbody></table>
+</div>
+<div id="CA-2in1" style="display:none">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">35</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GCLZX16B" target="_blank">B0GCLZX16B</a></td>
+<td class="brand">QAZIPO</td>
+<td class="config">12寸 6500Y 12G 512G 金色</td>
+<td class="title-cell" title="2-in-1 Laptop Tablet | Windows 11, Magnetic Keyboard, 1 Year Office 365, 12-inch 2K FHD IPS Touchscreen, 12GB RAM 512GB SSD, Gold 6500Y Processor, Dual Stereo Speakers for Home Office Business Student">2-in-1 Laptop Tablet | Windows 11, Magnetic Keyboard, 1 Year Office 365, 12-inch...</td>
+<td class="price">C$579.99</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">7</td>
+<td class="sales">9</td>
+<td class="date">2026-01-11</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">48</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0DGLKYBK5" target="_blank">B0DGLKYBK5</a></td>
+<td class="brand">KOOTIGERS</td>
+<td class="config">8寸 N150 12G 512G</td>
+<td class="title-cell" title="Mini Laptop 8“ 2-in-1, Laptop Computer Win 11, Intel N150(up to 3.6GHz), 12GB RAM 512GB SSD, Touchscreen HD, Backlit Keyboard, Wi-Fi 6, USB-C, Lightweight Portable PC for Work (N150(12GB+512GB))">Mini Laptop 8“ 2-in-1, Laptop Computer Win 11, Intel N150(up to 3.6GHz), 12GB RA...</td>
+<td class="price">C$569.00</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">63</td>
+<td class="sales">8</td>
+<td class="date">2025-10-14</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">93</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0GJZTQ161" target="_blank">B0GJZTQ161</a></td>
+<td class="brand">QAZIPO</td>
+<td class="config">10.1寸 6500Y 8G 256G</td>
+<td class="title-cell" title="2-in-1 Laptop/Tablet (2026), Windows 11 PC with Detachable Keyboard, 1-Year Office 365, 10.1“ FHD IPS Touchscreen, 8GB RAM 256GB SSD, 6500Y Processor, USB-C, 2 Stereo Speakers for Home Office Students">2-in-1 Laptop/Tablet (2026), Windows 11 PC with Detachable Keyboard, 1-Year Offi...</td>
+<td class="price">C$469.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">5</td>
+<td class="sales">5</td>
+<td class="date">2026-02-12</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">125</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0DR2RTGS6" target="_blank">B0DR2RTGS6</a></td>
+<td class="brand">AocBook</td>
+<td class="config">11寸 16G 230G 粉色</td>
+<td class="title-cell" title="AocBook 11” 2-in-1 Touchscreen Laptop Pink (16GB DDR4 | 230GB SSD)">AocBook 11” 2-in-1 Touchscreen Laptop Pink (16GB DDR4 | 230GB SSD)</td>
+<td class="price">C$599.90</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">4</td>
+<td class="sales">5</td>
+<td class="date">2025-01-22</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">182</td>
+<td class="asin"><a href="https://amazon.ca/dp/B0DR2PCXB5" target="_blank">B0DR2PCXB5</a></td>
+<td class="brand">AocBook</td>
+<td class="config">11寸 N150 16G 512G 粉色</td>
+<td class="title-cell" title="11” 2-in-1 Touchscreen Laptop Pink, FHD 1920 x1200 IPS Display, 12th Gen N150 16GB DDR4 RAM, M.2 512GB SSD, 360° Flip, Portable Business Notebook for Students">11” 2-in-1 Touchscreen Laptop Pink, FHD 1920 x1200 IPS Display, 12th Gen N150 16...</td>
+<td class="price">C$549.90</td>
+<td class="rating">⭐2.5</td>
+<td class="reviews">4</td>
+<td class="sales">5</td>
+<td class="date">2025-01-24</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="country-section" id="section-JP">
+<div id="JP-traditional" style="display:block">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">4</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0BBFZK2NZ" target="_blank">B0BBFZK2NZ</a></td>
+<td class="brand">ESBOOK</td>
+<td class="config">14寸 8G 256G</td>
+<td class="title-cell" title="ESBOOKノートパソコン 【MS Office 2024搭載&Windows 11 Pro】14インチIPS液晶/1920×1080FHDディスプレイ カメラ付き/薄型PCノート高性能CPU/初期設定不要/8Gメモリ/無線LAN/大容量SSD/初心者向け・パソコンノート/日本語キーボードフィルム付き/ワイヤレスマウス付き(256G SSD, ローズゴールド)">ESBOOKノートパソコン 【MS Office 2024搭載&Windows 11 Pro】14インチIPS液晶/1920×1080FHDディスプレイ カメラ...</td>
+<td class="price">¥38,999</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">2,604</td>
+<td class="sales">722</td>
+<td class="date">2022-09-02</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">23</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0F4783RL2" target="_blank">B0F4783RL2</a></td>
+<td class="brand">EYY</td>
+<td class="config">15.6寸 i5 16G 512G</td>
+<td class="title-cell" title="【ノートパソコン Office2024搭載 Win11 Pro】15.6インチ パソコン Core m3-8100Y 最大3.4GHz 16GB メモリ 512GB SSD ノートパソコン 1.6kg 薄型 軽量 FHD 1920×1080 英語キーボード ノートpc テンキー付き/WiFi5/BT5/Webカメラ/USB3.0/HDポート 在宅勤務 テレワーク 学生向け laptop グレー">【ノートパソコン Office2024搭載 Win11 Pro】15.6インチ パソコン Core m3-8100Y 最大3.4GHz 16GB メモリ 512...</td>
+<td class="price">¥54,900</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">217</td>
+<td class="sales">338</td>
+<td class="date">2025-04-28</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">50</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0G7ZB21V3" target="_blank">B0G7ZB21V3</a></td>
+<td class="brand">Moxalc</td>
+<td class="config">15.6寸 N4000 8G 256G</td>
+<td class="title-cell" title="Moxalc 15.6インチ ノートパソコン Win 11 Pro Office 搭載 ラップトップ、1920*1080 FHD IPS 液晶ノートPC、2.4G/5G Wi-Fi BT 4.2 HDMI USB 3.0 英語キーボード Laptop 1.5kg軽量 学習用 オンライン授業 テレワーク 在宅勤務 (8G+256G,N4000)">Moxalc 15.6インチ ノートパソコン Win 11 Pro Office 搭載 ラップトップ、1920*1080 FHD IPS 液晶ノートPC、2.4...</td>
+<td class="price">¥34,765</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">38</td>
+<td class="sales">193</td>
+<td class="date">2026-01-08</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">59</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0FZ9V7V4H" target="_blank">B0FZ9V7V4H</a></td>
+<td class="brand">EYY</td>
+<td class="config">15.6寸 i5 12G 256G</td>
+<td class="title-cell" title="ノートパソコン Office2024搭載 パソコン Win 11 Pro 15.6インチ ノートPC 12GB メモリ SSD 256GB Celeron プロセッサー 最大2.6GHZ FHD1080P IPS非光沢液晶 ウェブカメラ付き 静音動作 軽量薄型 laptop 1.5kg/WIFI5/BT5.0/HDポート/テンキー ラップトップ 学生向け 仕事用 学習用 シルバー">ノートパソコン Office2024搭載 パソコン Win 11 Pro 15.6インチ ノートPC 12GB メモリ SSD 256GB Celeron プロ...</td>
+<td class="price">¥37,900</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">118</td>
+<td class="sales">176</td>
+<td class="date">2025-11-07</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">63</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0FM43LKH2" target="_blank">B0FM43LKH2</a></td>
+<td class="brand">UOWAMOU</td>
+<td class="config">15.6寸 i5 512G</td>
+<td class="title-cell" title="UOWAMOU Office 2024搭載 ノートパソコン 15.6型 6500Y 32+512GB ラップトップ1920×1080 IPS液晶スクリーン Win11 薄型ノートpc 高速放熱 静音Laptop USB3.2 Gen1×2 /USB2.0×1/HDMI/Type-C/TFカード対応WIFI5/BT5.0/テンキー付き 日本語キーボードカバー">UOWAMOU Office 2024搭載 ノートパソコン 15.6型 6500Y 32+512GB ラップトップ1920×1080 IPS液晶スクリーン Wi...</td>
+<td class="price">¥46,800</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">136</td>
+<td class="sales">186</td>
+<td class="date">2025-09-03</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">70</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0GCR9G437" target="_blank">B0GCR9G437</a></td>
+<td class="brand">VETESA</td>
+<td class="config">15.6寸 i5 512G</td>
+<td class="title-cell" title="【2026最新ノートパソコン N5095より速い】VETESA Office 2024搭載 ラップトップ 第14世代 6500Y 15.6インチ 16GB 512GB Nvme SSD Windows11Pro 1920×1080 IPS液晶 WEBカメラ 薄型ノートPC Wi-Fi5 BT5.0ラップトップ 日本語キーボード オンライン授業・在宅勤務・ビデオ鑑賞 ホワイト">【2026最新ノートパソコン N5095より速い】VETESA Office 2024搭載 ラップトップ 第14世代 6500Y 15.6インチ 16GB 51...</td>
+<td class="price">¥49,800</td>
+<td class="rating">⭐4</td>
+<td class="reviews">14</td>
+<td class="sales">149</td>
+<td class="date">2026-01-16</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">79</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0FNJCV96S" target="_blank">B0FNJCV96S</a></td>
+<td class="brand">VETESA</td>
+<td class="config">14寸 128G</td>
+<td class="title-cell" title="VETESA ノートパソコン office2024搭載 Windows11 ProノートPC 日本語キーボード 14型液晶/Webカメラ搭載（マイク内蔵）/WIFI5搭載/豊富な接続端子/軽量PC laptop パソコン 初心者向け・学生向け・在宅勤務・カメラ付き・Zoom パソコン ノート マウス付属(メモリー: 8GB/高速M.2 SSD:128GB)">VETESA ノートパソコン office2024搭載 Windows11 ProノートPC 日本語キーボード 14型液晶/Webカメラ搭載（マイク内蔵）/WI...</td>
+<td class="price">¥29,999</td>
+<td class="rating">⭐3.8</td>
+<td class="reviews">82</td>
+<td class="sales">137</td>
+<td class="date">2025-08-31</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">115</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B09F624HX2" target="_blank">B09F624HX2</a></td>
+<td class="brand">SERYUB</td>
+<td class="config">14寸 Celeron 128G</td>
+<td class="title-cell" title="SERYUB ノートパソコン【MS Office 2024】【Win 11Pro】14インチ1920*1080 IPS パソコンノート 高速CPU Celeron J4105 (N4000より速い） 最大2.7Ghz/メモリ:DDR４ 8GB/SSD:128GB ノートPC日本語キーボードフィルム付き/USB 3.0*2/薄型軽量 ラップトップ laptop初心者向け 仕事用・学習用">SERYUB ノートパソコン【MS Office 2024】【Win 11Pro】14インチ1920*1080 IPS パソコンノート 高速CPU Celero...</td>
+<td class="price">¥36,999</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">351</td>
+<td class="sales">104</td>
+<td class="date">2021-09-03</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">127</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0GYW5DGCH" target="_blank">B0GYW5DGCH</a></td>
+<td class="brand">KAZEON</td>
+<td class="config">10.1寸 N4000 256G 蓝色</td>
+<td class="title-cell" title="ノートパソコン Celeron N4000 【MS Office 2024搭載&Windows 11 Pro】10.1インチ ノートPC 1280×800 IPS液晶/Webカメラ付き/Wifi/Bluetooth/mini HDMI/軽量薄型/タッチパッド付き/狭額縁/学生向け/在宅勤務/Laptop 日本語説明書・ワイヤレスマウス付き（メモリ8GB/SSD256GB,ローズゴールド）">ノートパソコン Celeron N4000 【MS Office 2024搭載&Windows 11 Pro】10.1インチ ノートPC 1280×800 IP...</td>
+<td class="price">¥33,990</td>
+<td class="rating">⭐5</td>
+<td class="reviews">4</td>
+<td class="sales">108</td>
+<td class="date">2026-05-10</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">198</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0FKZ16G1Y" target="_blank">B0FKZ16G1Y</a></td>
+<td class="brand">ECOHERO</td>
+<td class="config">15.6寸 i5 1TB</td>
+<td class="title-cell" title="ECOHERO ノートパソコン 15.6 インチ FHD IPS 液晶、Pentium 6500Y CPU（最大 3.4GHz、Core M3-8100Y より高性能）、32GB デュアルメモリ、1TB SSD、Win11 Pro、Office2024 Pro Plus、WiFi5/BT5.0、プライバシーシャッター Web カメラ —— オフィス/動画/家庭用最適">ECOHERO ノートパソコン 15.6 インチ FHD IPS 液晶、Pentium 6500Y CPU（最大 3.4GHz、Core M3-8100Y より...</td>
+<td class="price">¥48,900</td>
+<td class="rating">⭐5</td>
+<td class="reviews">11</td>
+<td class="sales">78</td>
+<td class="date">2025-08-03</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+</tbody></table>
+</div>
+<div id="JP-2in1" style="display:none">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">2</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0GWGYCFV7" target="_blank">B0GWGYCFV7</a></td>
+<td class="brand">BeeTool</td>
+<td class="config">-</td>
+<td class="title-cell" title="BeeTool ハンディクリーナー 多機能 【3種吸引モード＆ディスプレイ搭載】60000Pa 驚きの吸引力 車用掃除機 コードレス 吹き飛ぶ/吸い込む/空気入れ/空気抜き ハンディ掃除機 強力吸引力 保護装置付 急速充電 長時間稼働 低騒音 軽量 乾湿両用 小型 Type-C充電式 メーカー保証付 人気 業務用/車用清掃/家具/家庭用 HX-606 (マブラック)">BeeTool ハンディクリーナー 多機能 【3種吸引モード＆ディスプレイ搭載】60000Pa 驚きの吸引力 車用掃除機 コードレス 吹き飛ぶ/吸い込む/空気入...</td>
+<td class="price">¥6,280</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">236</td>
+<td class="sales">322</td>
+<td class="date">2026-05-21</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">26</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0G2LTM6W2" target="_blank">B0G2LTM6W2</a></td>
+<td class="brand">TENKU</td>
+<td class="config">10.51寸 i3 512G</td>
+<td class="title-cell" title="TENKU Note モバイルノートPC 10.51インチ 2 in1 UMPC 4960筆圧SurfacePen対応（1920ｘ1280 FHD+）3：2比率タッチ液晶搭載 日本語キーボード USB3.1 Type-C x2 バッテリー28.88Wh 本体重量約950ｇ (Pro Windows 11 Pro Core i3-1315メモリ32GB/SSD512GB)">TENKU Note モバイルノートPC 10.51インチ 2 in1 UMPC 4960筆圧SurfacePen対応（1920ｘ1280 FHD+）3：2比率...</td>
+<td class="price">¥138,000</td>
+<td class="rating">⭐3.8</td>
+<td class="reviews">14</td>
+<td class="sales">51</td>
+<td class="date">2025-11-21</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">39</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0G4W7GG1Z" target="_blank">B0G4W7GG1Z</a></td>
+<td class="brand">TENKU</td>
+<td class="config">7寸 i3 16G</td>
+<td class="title-cell" title="GPD MicroPC2 国内正規版 7インチ（1920ｘ1080）モバイルノートUMPC RJ45 HDMI2.1 USBType-A Type-C MicroSDカードスロット搭載 約490g Windows11 天空オリジナルパッケージ (intel Core i3 N300 メモリ16GB SSD512GB Windows11 Home)">GPD MicroPC2 国内正規版 7インチ（1920ｘ1080）モバイルノートUMPC RJ45 HDMI2.1 USBType-A Type-C Micr...</td>
+<td class="price">¥123,000</td>
+<td class="rating">⭐4</td>
+<td class="reviews">28</td>
+<td class="sales">48</td>
+<td class="date">2025-12-16</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">45</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0FP1VV31R" target="_blank">B0FP1VV31R</a></td>
+<td class="brand">Zwide</td>
+<td class="config">8寸 N150 16G 512G</td>
+<td class="title-cell" title="Zwide N150ノートパソコン 2in1 タブレット Windows11 8インチ 日本語キーボード 16GB RAM+512GB ROM タッチスクリーン 360度回転 (インチ, 8, グレー, N150, 512, GB, Windows 11 Pro, GB, 16)">Zwide N150ノートパソコン 2in1 タブレット Windows11 8インチ 日本語キーボード 16GB RAM+512GB ROM タッチスクリーン...</td>
+<td class="price">¥59,999</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">4</td>
+<td class="sales">20</td>
+<td class="date">2025-09-04</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">53</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0GZV4R5NV" target="_blank">B0GZV4R5NV</a></td>
+<td class="brand">VETESA</td>
+<td class="config">11.6寸 i5 128G</td>
+<td class="title-cell" title="VETESA 2in1 ノートパソコン タッチパネル 11.6インチ 360°回転, office2024 搭載 Windows11 超軽量 ノート PC タブレットpc Wifi5/BT5.0対応/カメラ内蔵 学習 ビジネス 8GB 128GB M.2 SSD">VETESA 2in1 ノートパソコン タッチパネル 11.6インチ 360°回転, office2024 搭載 Windows11 超軽量 ノート PC タブ...</td>
+<td class="price">¥37,800</td>
+<td class="rating">⭐1</td>
+<td class="reviews">1</td>
+<td class="sales">12</td>
+<td class="date">2026-05-19</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">53</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0F5B9YBKM" target="_blank">B0F5B9YBKM</a></td>
+<td class="brand">BINTEC</td>
+<td class="config">10.95寸 N95 512G 蓝色</td>
+<td class="title-cell" title="【JISキーボード・2K 】2-in-1ノートパソコン Office2024/10.95インチ軽量 DDR5 12GB インテルn95（最大3.4GHz) laptop/2000*1200 タッチパネル/360度回転/指紋認証/Windows11 pro/タブレットPC/バックライト/Wi-Fi 5 & Bluetooth/初心者・学生向け/タッチペン・マウス付き（512GB NVMe SSD）">【JISキーボード・2K 】2-in-1ノートパソコン Office2024/10.95インチ軽量 DDR5 12GB インテルn95（最大3.4GHz) la...</td>
+<td class="price">¥61,990</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">24</td>
+<td class="sales">12</td>
+<td class="date">2025-04-29</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">56</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0GWHK7BS7" target="_blank">B0GWHK7BS7</a></td>
+<td class="brand">BNCF</td>
+<td class="config">10.1寸 Pentium 256G 金色</td>
+<td class="title-cell" title="BNCF 2in1 タブレット、Windows 11 ノートパソコン 10インチ、 Pentium Gold 6500Y、2 コア 4 スレッド、最大3.4GHz、8GB+256GB、10.1“ IN-CELL HD IPS 1280 x800、Wi-Fi 5、BT 5.0、2xType-C、HDMI、着脱式キーボード、仕事・学習・娯楽シーン全てに対応">BNCF 2in1 タブレット、Windows 11 ノートパソコン 10インチ、 Pentium Gold 6500Y、2 コア 4 スレッド、最大3.4GH...</td>
+<td class="price">¥40,999</td>
+<td class="rating">⭐4.8</td>
+<td class="reviews">8</td>
+<td class="sales">68</td>
+<td class="date">2026-04-27</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">71</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0GTXQGSK6" target="_blank">B0GTXQGSK6</a></td>
+<td class="brand">TENKU</td>
+<td class="config">7寸 Ryzen Ai 9 1TB</td>
+<td class="title-cell" title="AYANEO FLIP 1S DS ポータブルゲーミングPC 国内正規版 メインディスプレイ 7インチ OLED FHD/ サブディスプレイ4.5インチ 1620 x1080 3:2 IPS液晶/TMR電磁式ジョイスティック/USB4×2/Windows 11 Home (Ryzen AI 9 HX 370 メモリ 32GB/1TB SSD スターリーイエロー)">AYANEO FLIP 1S DS ポータブルゲーミングPC 国内正規版 メインディスプレイ 7インチ OLED FHD/ サブディスプレイ4.5インチ 162...</td>
+<td class="price">¥268,000</td>
+<td class="rating">-</td>
+<td class="reviews">0</td>
+<td class="sales">8</td>
+<td class="date">2026-04-01</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">74</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0GXJ36LJL" target="_blank">B0GXJ36LJL</a></td>
+<td class="brand">Wingame</td>
+<td class="config">11.6寸 i5 128G</td>
+<td class="title-cell" title="【2026最新型】Wingame 2in1 ノートパソコン 11.6インチ タッチパネル 360°回転 Windows11 Office搭載 インテル N3350 8GB 128GB SSD ミニノートPC 軽量 タブレットPC Webカメラ内蔵/ WiFi5/ BT5.0対応">【2026最新型】Wingame 2in1 ノートパソコン 11.6インチ タッチパネル 360°回転 Windows11 Office搭載 インテル N335...</td>
+<td class="price">¥34,960</td>
+<td class="rating">⭐5</td>
+<td class="reviews">3</td>
+<td class="sales">26</td>
+<td class="date">2026-04-30</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">82</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B089CT87RR" target="_blank">B089CT87RR</a></td>
+<td class="brand">§Ｇ∞ＧＭＪ</td>
+<td class="config">10.1寸 N4020 128G</td>
+<td class="title-cell" title="GM-JAPAN 2-in-1 タブレットノートパソコン 10.1インチ GLM-10-128 Windows 11 Pro/Intel Celeron N4020 / メモリ4GB / SSD128GB / タッチ対応/WPS Office付き/日本語キーボード/軽量 575g">GM-JAPAN 2-in-1 タブレットノートパソコン 10.1インチ GLM-10-128 Windows 11 Pro/Intel Celeron N40...</td>
+<td class="price">¥34,999</td>
+<td class="rating">⭐3.8</td>
+<td class="reviews">1,348</td>
+<td class="sales">23</td>
+<td class="date">2020-06-02</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>11</td>
+<td class="rank">82</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0FNJC7QFP" target="_blank">B0FNJC7QFP</a></td>
+<td class="brand">Dobios</td>
+<td class="config">i5 256G 蓝色</td>
+<td class="title-cell" title="Dobios ノートパソコン 2in1 タッチスクリーン 360°回転 Office 2024搭載 Windows 11 Pro CPU Celeron ポータブル 超軽量 タブレット PC Wi-Fi5、Bluetooth、Micro SD、WEBカメラ パソコン ノート8GB 256GB M.2 SSD">Dobios ノートパソコン 2in1 タッチスクリーン 360°回転 Office 2024搭載 Windows 11 Pro CPU Celeron ポータ...</td>
+<td class="price">¥34,980</td>
+<td class="rating">⭐3.6</td>
+<td class="reviews">19</td>
+<td class="sales">18</td>
+<td class="date">2025-08-28</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>12</td>
+<td class="rank">83</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0F8BRNMJF" target="_blank">B0F8BRNMJF</a></td>
+<td class="brand">BINHENGLON</td>
+<td class="config">10.95寸 N95 256G</td>
+<td class="title-cell" title="OFFICE 2024 搭載 2in1 ノートパソコン タッチパネル 10.95インチ n95（m3-8100Yより速い） ノートpc ピンク 360°回転可能 軽量タブレットpc/1920 x1200 /顔認証/わずか942g 200万カメラ画素/BT 4.2/Type-C（データ転送専用）/初期設定不要Windows11 Pro 日本語キーボードカバー付き (ピンク, 8GB+256GB)">OFFICE 2024 搭載 2in1 ノートパソコン タッチパネル 10.95インチ n95（m3-8100Yより速い） ノートpc ピンク 360°回転可能...</td>
+<td class="price">¥49,999</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">83</td>
+<td class="sales">51</td>
+<td class="date">2025-05-17</td>
+<td class="seller">🇺🇸 美国</td>
+</tr>
+<tr>
+<td>13</td>
+<td class="rank">84</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0CKW2H77V" target="_blank">B0CKW2H77V</a></td>
+<td class="brand">KOOFORWAY</td>
+<td class="config">8寸 N95 12G 512G</td>
+<td class="title-cell" title="8インチ UMPC HDタッチスクリーン ポータブル 2-in-1 コンパクトPC Windows 11 Pro 日本語キーボード搭載 Intel N95、12GB LPDDR5、512GB M.2 SSD、Wi-Fi 6、BT5.2、2MPカメラ、Gセンサー、HDMI、Type-C (シルバーグレー(12GB+512GB))">8インチ UMPC HDタッチスクリーン ポータブル 2-in-1 コンパクトPC Windows 11 Pro 日本語キーボード搭載 Intel N95、12...</td>
+<td class="price">¥61,999</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">24</td>
+<td class="sales">26</td>
+<td class="date">2024-08-16</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>14</td>
+<td class="rank">86</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0F9P845T2" target="_blank">B0F9P845T2</a></td>
+<td class="brand">KOOSMILE</td>
+<td class="config">8寸 N150 12G 1TB 蓝色</td>
+<td class="title-cell" title="KOOSMILE UMPC 8インチ、2in1 ノートパソコン 8インチ Win 11 Pro タッチパネル小型ノートパソコン 日本語キーボード搭載12GB LPDDR5 RAM、1TB M.2 SSD Wi-Fi 6、Bluetooth 5.2、HDMI、Gセンサー、2MPカメラ付きコンバーチブルノートPC (N150-12GB+512GB)">KOOSMILE UMPC 8インチ、2in1 ノートパソコン 8インチ Win 11 Pro タッチパネル小型ノートパソコン 日本語キーボード搭載12GB L...</td>
+<td class="price">¥61,999</td>
+<td class="rating">⭐4</td>
+<td class="reviews">282</td>
+<td class="sales">16</td>
+<td class="date">2025-06-16</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>15</td>
+<td class="rank">86</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B09K662Y3R" target="_blank">B09K662Y3R</a></td>
+<td class="brand">NAT-KU</td>
+<td class="config">10.1寸 N4020 4G 蓝色</td>
+<td class="title-cell" title="NAT-KU タブレットパソコン 2in1 10.1インチ タッチパネル対応 専用日本語キーボード付属 DDR4 4GB eMMC 128GB Celeron N4020 Microsoft office 2019 Windows11Pro 64bit WIFI USB3.0 Micro HDMI Type D WEBカメラ Bluetooth (90日間保証付き)">NAT-KU タブレットパソコン 2in1 10.1インチ タッチパネル対応 専用日本語キーボード付属 DDR4 4GB eMMC 128GB Celeron ...</td>
+<td class="price">¥29,800</td>
+<td class="rating">⭐3.6</td>
+<td class="reviews">48</td>
+<td class="sales">11</td>
+<td class="date">2021-10-26</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>16</td>
+<td class="rank">92</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0GNZ3NZGC" target="_blank">B0GNZ3NZGC</a></td>
+<td class="brand">TENKU</td>
+<td class="config">8寸 I3-N305 16G</td>
+<td class="title-cell" title="TENKU Pocket8 8インチ UMPC 小型 2in1 ノートパソコン インテル Core i3-N305 搭載 メモリ16GB SSD512GB 10点マルチタッチIPS液晶(1920 x1200) MiniHDMI MicroSD 日本語キーボード 658g Windows11 Pro">TENKU Pocket8 8インチ UMPC 小型 2in1 ノートパソコン インテル Core i3-N305 搭載 メモリ16GB SSD512GB 10...</td>
+<td class="price">¥124,800</td>
+<td class="rating">⭐2.7</td>
+<td class="reviews">4</td>
+<td class="sales">7</td>
+<td class="date">2026-02-18</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>17</td>
+<td class="rank">116</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0C3W2KH82" target="_blank">B0C3W2KH82</a></td>
+<td class="brand">Lzwcan</td>
+<td class="config">10.95寸 N95 16G 512G 蓝色</td>
+<td class="title-cell" title="2in1ノートパソコンタッチパネル 360°回転・10.95インチ Win11 Pro・Office 2024搭載初期設定不要 LPDDR4 16GB RAM/高速SSD 512GB/Alder Lake-N95 (最大3.4 GHz) 4コア 軽量 ノートpc/顔認証/1920 x1200 FHD / 0.94kg/Type-Cデータ転送/Bluetooth/バックライト付きlaptop">2in1ノートパソコンタッチパネル 360°回転・10.95インチ Win11 Pro・Office 2024搭載初期設定不要 LPDDR4 16GB RAM/...</td>
+<td class="price">¥60,999</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">80</td>
+<td class="sales">38</td>
+<td class="date">2023-04-29</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>18</td>
+<td class="rank">120</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0DW8S7F8D" target="_blank">B0DW8S7F8D</a></td>
+<td class="brand">TENKU</td>
+<td class="config">10.51寸 N150 1TB</td>
+<td class="title-cell" title="TENKU MOBILE S10 2in1モバイルノートPC 10.51インチ 920g USB TYPE-C 映像出力 日本語キーボード Windows 11 Home (intel N150/メモリ16GB/SSD1TB)">TENKU MOBILE S10 2in1モバイルノートPC 10.51インチ 920g USB TYPE-C 映像出力 日本語キーボード Windows 11...</td>
+<td class="price">¥108,000</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">45</td>
+<td class="sales">11</td>
+<td class="date">2025-02-20</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+<tr>
+<td>19</td>
+<td class="rank">183</td>
+<td class="asin"><a href="https://amazon.co.jp/dp/B0FRF7K7NM" target="_blank">B0FRF7K7NM</a></td>
+<td class="brand">SERYUB</td>
+<td class="config">10.95寸 N100 16G 1TB</td>
+<td class="title-cell" title="SERYUB office2024搭載ノートパソコン 10.95インチ 1TB インテルn100（最大3.4GHz）16GB DDR4 高速CPU（N95を上回る処理速度） 顔認証（Windows Hello 対応） 2in1パソコン Windows 11 Pro 軽量ノートPC/IPS広視野角 フルHD液晶/コスパLaptop (N100, 16G+960GB)">SERYUB office2024搭載ノートパソコン 10.95インチ 1TB インテルn100（最大3.4GHz）16GB DDR4 高速CPU（N95を上回...</td>
+<td class="price">¥71,900</td>
+<td class="rating">⭐3.9</td>
+<td class="reviews">13</td>
+<td class="sales">5</td>
+<td class="date">2025-10-12</td>
+<td class="seller">🇯🇵 日本</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="country-section" id="section-FR">
+<div id="FR-traditional" style="display:block">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">14</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GRJ6LC52" target="_blank">B0GRJ6LC52</a></td>
+<td class="brand">Difinity</td>
+<td class="config">15.6寸 N3450 8G 蓝色</td>
+<td class="title-cell" title="Quad PC Portable 15.6' FullHD (N3450 4x2.2 GHz, RAM 8Go, 256Go SSD, WLAN, Bluetooth, Windows 11 Pro) Clavier AZERTY Français #6839">Quad PC Portable 15.6' FullHD (N3450 4x2.2 GHz, RAM 8Go, 256Go SSD, WLAN, Blueto...</td>
+<td class="price">€179.00</td>
+<td class="rating">⭐3.4</td>
+<td class="reviews">39</td>
+<td class="sales">99</td>
+<td class="date">2026-03-17</td>
+<td class="seller">🇫🇷 法国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">16</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0DJD32JGP" target="_blank">B0DJD32JGP</a></td>
+<td class="brand">Ruzava</td>
+<td class="config">14寸 N5095</td>
+<td class="title-cell" title="Ordinateur Portable 14 Pouces Celeron N5095 Win11 Pro 8Go RAM 256Go SSD Extension1To 5G WiFi 1920 x1080 FHD PC Portable avec Souris sans Fil qwerty Clavier avec AZERTY Membrane du Clavie - Doré Métal1">Ordinateur Portable 14 Pouces Celeron N5095 Win11 Pro 8Go RAM 256Go SSD Extensio...</td>
+<td class="price">€220.06</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">38</td>
+<td class="sales">170</td>
+<td class="date">2025-11-19</td>
+<td class="seller">🇵🇱 波兰</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">20</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GRVTYJB2" target="_blank">B0GRVTYJB2</a></td>
+<td class="brand">JHHBHV</td>
+<td class="config">15.6寸 5205U</td>
+<td class="title-cell" title="Ordinateur Portable Windows 11 Laptop, Film Silicone Pour Clavier AZERTY PC Portable 15,6 Pouces Windows 11 et Suite Office 365 1 an 5205U (Jusqu‘à 2,3GHz) 4Go RAM 128Go ROM Extensible TF 512Go">Ordinateur Portable Windows 11 Laptop, Film Silicone Pour Clavier AZERTY PC Port...</td>
+<td class="price">€239.99</td>
+<td class="rating">⭐4.9</td>
+<td class="reviews">10</td>
+<td class="sales">80</td>
+<td class="date">2026-04-16</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">24</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0DS1ZZSQ4" target="_blank">B0DS1ZZSQ4</a></td>
+<td class="brand">LONGEVINCE</td>
+<td class="config">14寸 Celeron 256G</td>
+<td class="title-cell" title="Ordinateur Portable 14 Pouces,Celeron J4105 Win11 Pro,8Go DDR4,PC Portable IPS 1920 x 1080,avec Protection de Clavier AZERTY en français,Idéal Étudiant & Bureautique(Gris, 8GB+256G SSD)">Ordinateur Portable 14 Pouces,Celeron J4105 Win11 Pro,8Go DDR4,PC Portable IPS 1...</td>
+<td class="price">€288.00</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">22</td>
+<td class="sales">153</td>
+<td class="date">2025-11-28</td>
+<td class="seller">🇫🇷 法国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">55</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0D7PK2CCG" target="_blank">B0D7PK2CCG</a></td>
+<td class="brand">NOTODD</td>
+<td class="config">16寸 N5095 1TB</td>
+<td class="title-cell" title="Ordinateur Portable Gaming 16 Pouces 12 + 512 Go Soutien Extension 1TB (HDD-2TB) 4 cœurs Celeron N5095 (jusqu‘à 2,9 GHz)1920 x1200 PC Gamer Portable,Laptop avec Écran 2K 2.4+5G WiFi Mini HDMI-Violet">Ordinateur Portable Gaming 16 Pouces 12 + 512 Go Soutien Extension 1TB (HDD-2TB)...</td>
+<td class="price">€299.99</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">302</td>
+<td class="sales">65</td>
+<td class="date">2024-08-05</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">60</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GVCFMK32" target="_blank">B0GVCFMK32</a></td>
+<td class="brand">PINSTONE</td>
+<td class="config">14寸</td>
+<td class="title-cell" title="PINSTONE Ordinateur Portable 14″ 2 cœurs (Jusqu’à 2,6 GHz) • 6 Go RAM • 128 Go SSD • WiFi 5G • Mini-HDMI • Design sans Ventilateur PC Portable • Finition Argent, Léger + Souris Incluse">PINSTONE Ordinateur Portable 14″ 2 cœurs (Jusqu’à 2,6 GHz) • 6 Go RAM • 128 Go S...</td>
+<td class="price">€209.00</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">24</td>
+<td class="sales">105</td>
+<td class="date">2026-04-04</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">62</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0FJX8SHHX" target="_blank">B0FJX8SHHX</a></td>
+<td class="brand">Tivique</td>
+<td class="config">16寸 Ryzen 7 512G</td>
+<td class="title-cell" title="2025 Ordinateur Portable Gaming 16 Pouces - Processeur Ryzen 7 H255 (Jusqu‘à 4.9 GHz), Pc Portable DDR5 16 Go, SSD 512 Go (Extensible à 4 to), 4800MHz Clavier Rétroéclairé, WiFi 6">2025 Ordinateur Portable Gaming 16 Pouces - Processeur Ryzen 7 H255 (Jusqu‘à 4.9...</td>
+<td class="price">€599.99</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">94</td>
+<td class="sales">89</td>
+<td class="date">2025-08-26</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">66</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0FQP7CYP2" target="_blank">B0FQP7CYP2</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 I3-8100Y 蓝色</td>
+<td class="title-cell" title="MOGIKK Ordinateur Portable 15,6 Pouces Processeur Core i3-8100Y 16 Go RAM DDR3 512 Go SSD Win 11 PC Portable Écran FHD IPS pavé Numérique USB 3.0 Type-C Mini HDMI Laptop Wi-FI 5 Bluetooth 5.0">MOGIKK Ordinateur Portable 15,6 Pouces Processeur Core i3-8100Y 16 Go RAM DDR3 5...</td>
+<td class="price">€309.99</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">17</td>
+<td class="sales">88</td>
+<td class="date">2025-10-14</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">69</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GX56K72T" target="_blank">B0GX56K72T</a></td>
+<td class="brand">Pryloxen</td>
+<td class="config">15.6寸 AMD 3050E 512G</td>
+<td class="title-cell" title="Pryloxen Ordinateur Portable 15,6“ Full HD | PC Ultra-Fin | Processeur 3050e Dual Core | 16 Go RAM | SSD 512 Go Ultra-Rapide | Clavier Rétroéclairé | Idéal Bureautique/Études| Argenté">Pryloxen Ordinateur Portable 15,6“ Full HD | PC Ultra-Fin | Processeur 3050e Dua...</td>
+<td class="price">€294.00</td>
+<td class="rating">⭐5</td>
+<td class="reviews">6</td>
+<td class="sales">125</td>
+<td class="date">2026-04-29</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">72</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0FQTSKQNC" target="_blank">B0FQTSKQNC</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 i5</td>
+<td class="title-cell" title="MOGIKK Ordinateur Portable 15,6 Pouces avec Office 365, 16Go RAM 512Go SSD Celeron N95, PC Portable 1920 * 1080 FHD WiFi5, Ordinateur Portable Win 11 Pro avec Touch ID Clavier rétroéclairé Laptop">MOGIKK Ordinateur Portable 15,6 Pouces avec Office 365, 16Go RAM 512Go SSD Celer...</td>
+<td class="price">€399.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">7</td>
+<td class="sales">75</td>
+<td class="date">2026-04-17</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>11</td>
+<td class="rank">75</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GY5L5FF1" target="_blank">B0GY5L5FF1</a></td>
+<td class="brand">FUNYET</td>
+<td class="config">15.6寸 M3 16G 256G</td>
+<td class="title-cell" title="FUNYET 2026 Neuf Ordinateur Portable,Laptop PC da 15,6 pollici,Core M3-6Y30,16 GB RAM 256 GB SSD,IPS FHD 1920 x1080 Notebook Laptop,180°Open,5000 mAh,supporta schede TF,Type-C">FUNYET 2026 Neuf Ordinateur Portable,Laptop PC da 15,6 pollici,Core M3-6Y30,16 G...</td>
+<td class="price">€264.99</td>
+<td class="rating">-</td>
+<td class="reviews">0</td>
+<td class="sales">87</td>
+<td class="date">2026-05-03</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>12</td>
+<td class="rank">75</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GXV3NCKP" target="_blank">B0GXV3NCKP</a></td>
+<td class="brand">PINSTONE</td>
+<td class="config">14.1寸 128G 蓝色</td>
+<td class="title-cell" title="Ordinateur Portable 14,1“ HD, 6 Go RAM, SSD 128 Go, Processeur Double Cœur, Wi‑Fi 2,4G/5G & Bluetooth, Design Silencieux Sans Ventilateur, PC Portable Léger avec Souris Offerte & Clavier Confortable">Ordinateur Portable 14,1“ HD, 6 Go RAM, SSD 128 Go, Processeur Double Cœur, Wi‑F...</td>
+<td class="price">€209.00</td>
+<td class="rating">⭐5</td>
+<td class="reviews">18</td>
+<td class="sales">84</td>
+<td class="date">2026-05-03</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>13</td>
+<td class="rank">76</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GS1MQN5P" target="_blank">B0GS1MQN5P</a></td>
+<td class="brand">Tivique</td>
+<td class="config">15.6寸 Ryzen 7 5700U 16G 512G</td>
+<td class="title-cell" title="2026 Ordinateur Portable 15.6 Pouces, PC Portable Gamer ave Ryzen 7 5700U (jusqu‘à 4.3GHz) 8C/16T, 16GB RAM DDR4*2 + 512GB SSD M.2, 1080 FHD, BT5.2, USB3.2, Type-C, HDMI, Rapide 65W, WiFi 6">2026 Ordinateur Portable 15.6 Pouces, PC Portable Gamer ave Ryzen 7 5700U (jusqu...</td>
+<td class="price">€449.99</td>
+<td class="rating">⭐3.9</td>
+<td class="reviews">10</td>
+<td class="sales">116</td>
+<td class="date">2026-03-26</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>14</td>
+<td class="rank">82</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0FPFY35HN" target="_blank">B0FPFY35HN</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">16寸 i5</td>
+<td class="title-cell" title="16 Pouces Ordinateur Portable, Core i5 8210Y Processeur 16Go RAM 1 to SSD PC Portable, Laptop écran 1920 x 1200 IPS, RJ45, USB 3.0, HDMI, BT 5.0, Pavé Numérique Rétroéclairé">16 Pouces Ordinateur Portable, Core i5 8210Y Processeur 16Go RAM 1 to SSD PC Por...</td>
+<td class="price">€409.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">12</td>
+<td class="sales">66</td>
+<td class="date">2026-04-19</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>15</td>
+<td class="rank">88</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GLP3YN8P" target="_blank">B0GLP3YN8P</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">15.6寸 Ryzen 7 5700U</td>
+<td class="title-cell" title="ACEMAGIC Pc Portable Gaming Ryzen 7 5700U (Jus qu‘à 4,3GHz) DDR4*2,WiFi 6,Laptop 15.6 Pouces 16 Go RAM 512 Go SSD,1080 FHD,3*USB 3.2, BT5.2,HDMI,Type-C,Cache Caméra,Ordinateur Léger">ACEMAGIC Pc Portable Gaming Ryzen 7 5700U (Jus qu‘à 4,3GHz) DDR4*2,WiFi 6,Laptop...</td>
+<td class="price">€464.99</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">13</td>
+<td class="sales">96</td>
+<td class="date">2026-03-04</td>
+<td class="seller">🇫🇷 法国</td>
+</tr>
+<tr>
+<td>16</td>
+<td class="rank">88</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0FTJGP336" target="_blank">B0FTJGP336</a></td>
+<td class="brand">PINSTONE</td>
+<td class="config">15.6寸 i5 蓝色</td>
+<td class="title-cell" title="PINSTONE 15,6“ Ordinateur Portable 16Go RAM 512Go SSD, PC Portable Celeron N5095 CPU, Ouverture à 180° du Portable, Laptop Computer avec écran FHD 1080P, WiFi5, Bluetooth4.2, USB3.0, Webcam, Touch ID">PINSTONE 15,6“ Ordinateur Portable 16Go RAM 512Go SSD, PC Portable Celeron N5095...</td>
+<td class="price">€279.99</td>
+<td class="rating">⭐3.9</td>
+<td class="reviews">873</td>
+<td class="sales">81</td>
+<td class="date">2025-10-08</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>17</td>
+<td class="rank">93</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0G2RQPG2R" target="_blank">B0G2RQPG2R</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 I5-7Y54 512G 蓝色</td>
+<td class="title-cell" title="MOGIKK Ordinateur Portable 15.6“ Full HD IPS, Core i5-7Y54 jusqu‘à 3.2 GHz, 16 Go RAM SSD 512 Go, Win 11 + Office 365, PC Portable Clavier Rétroéclairé, Laptop WiFi 5, Bluetooth 4.2 Mini-HDMI USB 3.0">MOGIKK Ordinateur Portable 15.6“ Full HD IPS, Core i5-7Y54 jusqu‘à 3.2 GHz, 16 G...</td>
+<td class="price">€369.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">11</td>
+<td class="sales">74</td>
+<td class="date">2026-01-10</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>18</td>
+<td class="rank">93</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GLPLHFSC" target="_blank">B0GLPLHFSC</a></td>
+<td class="brand">MAXLEGEN</td>
+<td class="config">14寸 N4120 1TB</td>
+<td class="title-cell" title="Ordinateur Portable 14 pouces, 16Go DDR4 RAM 256Go SSD Win11 PC Portable, Celeron N4120, 1920 x1080 FHD IPS, 5G WiFi/Mini HDMI/USB/BT, Soutien Extension 1TB, inclut Souris/Tapis de Souris/AZERTY Film">Ordinateur Portable 14 pouces, 16Go DDR4 RAM 256Go SSD Win11 PC Portable, Celero...</td>
+<td class="price">€245.99</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">123</td>
+<td class="sales">74</td>
+<td class="date">2026-02-19</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>19</td>
+<td class="rank">94</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GFN8GJKP" target="_blank">B0GFN8GJKP</a></td>
+<td class="brand">DREAMFYRE</td>
+<td class="config">15.6寸 i5 蓝色</td>
+<td class="title-cell" title="DREAMFYRE 15,6“ Ordinateur Portable 16Go DDR4 512Go SSD, PC Portátil Ryzen 7 4800H CPU, Portable Laptop Computer avec écran FHD 1080P, WiFi5, Bluetooth5.0, USB3.0, Webcam, Touch ID">DREAMFYRE 15,6“ Ordinateur Portable 16Go DDR4 512Go SSD, PC Portátil Ryzen 7 480...</td>
+<td class="price">€349.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">29</td>
+<td class="sales">113</td>
+<td class="date">2026-02-05</td>
+<td class="seller">🇪🇪 爱沙尼亚</td>
+</tr>
+<tr>
+<td>20</td>
+<td class="rank">97</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GN98MYDC" target="_blank">B0GN98MYDC</a></td>
+<td class="brand">AFFGUOK</td>
+<td class="config">15.6寸 Ryzen 3 3200U</td>
+<td class="title-cell" title="Ordinateur Portable 15,6 Pouces 2-en-1 - PC Portable Win 11, 16Go RAM 1To SSD, Laptop avec Processeur Ryzen 3 3200U, Écran Tactile IPS FHD 360° Rotation, Graphiques Radeon, Léger avec RJ45 Type-C">Ordinateur Portable 15,6 Pouces 2-en-1 - PC Portable Win 11, 16Go RAM 1To SSD, L...</td>
+<td class="price">€459.99</td>
+<td class="rating">⭐3.8</td>
+<td class="reviews">13</td>
+<td class="sales">63</td>
+<td class="date">2026-03-17</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>21</td>
+<td class="rank">102</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GR57VS6T" target="_blank">B0GR57VS6T</a></td>
+<td class="brand">Tivique</td>
+<td class="config">16.1寸 Ryzen 7</td>
+<td class="title-cell" title="PC Portable Gamer 16,1' - Ordinateur Portable Ryzen 7 H255 (jusqu’à 4,90 GHz), 8C/16T - 4800MHz 16Go DDR5*2 + 512Go SSD M.2, écran FHD 1200p, HDMI,WiFi 6, Radeon 780M 12C, Clavier Rétroéclairé">PC Portable Gamer 16,1' - Ordinateur Portable Ryzen 7 H255 (jusqu’à 4,90 GHz), 8...</td>
+<td class="price">€599.99</td>
+<td class="rating">⭐4.7</td>
+<td class="reviews">16</td>
+<td class="sales">88</td>
+<td class="date">2026-03-13</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>22</td>
+<td class="rank">126</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0DNPXZCHP" target="_blank">B0DNPXZCHP</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">6.16寸 I7-13700H</td>
+<td class="title-cell" title="ACEMAGIC 2026 Pc Portable Gaming Ryzen 7 H255 (Jusqu’à 4,9 Hz) DDR5 16Go Ram 512Go SSD 4800MHz Étendre à 4 to Ordinateur Portable Comparable Core i7-13700H Clavier rétroéclairé,WiFi 6,16 Pouces">ACEMAGIC 2026 Pc Portable Gaming Ryzen 7 H255 (Jusqu’à 4,9 Hz) DDR5 16Go Ram 512...</td>
+<td class="price">€659.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">307</td>
+<td class="sales">92</td>
+<td class="date">2024-12-13</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>23</td>
+<td class="rank">139</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0GXFBK961" target="_blank">B0GXFBK961</a></td>
+<td class="brand">Pryloxen</td>
+<td class="config">15.6寸 AMD 3050E 512G</td>
+<td class="title-cell" title="Ordinateur Portable 15,6“ Full HD | PC Ultra-Fin | Processeur 3050e Dual Core | 16 Go RAM | SSD 512 Go Ultra-Rapide | Clavier Rétroéclairé | Idéal Bureautique/Études">Ordinateur Portable 15,6“ Full HD | PC Ultra-Fin | Processeur 3050e Dual Core | ...</td>
+<td class="price">€285.00</td>
+<td class="rating">⭐3.6</td>
+<td class="reviews">29</td>
+<td class="sales">90</td>
+<td class="date">2026-04-29</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>24</td>
+<td class="rank">167</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0G1FZ5F8N" target="_blank">B0G1FZ5F8N</a></td>
+<td class="brand">CYCLUS</td>
+<td class="config">16寸 Ryzen 5 3500U</td>
+<td class="title-cell" title="CYCLUS 16“ PC Portable Étudiants Bureautique Créatif – AMD Ryzen 5 3500U (4C/8T 3,7 GHz), 16Go RAM, 512Go SSD, Vega 8, Clavier Rétroéclairé + USB-C + Membrane AZERTY">CYCLUS 16“ PC Portable Étudiants Bureautique Créatif – AMD Ryzen 5 3500U (4C/8T ...</td>
+<td class="price">€399.00</td>
+<td class="rating">⭐3.7</td>
+<td class="reviews">4</td>
+<td class="sales">64</td>
+<td class="date">2026-01-08</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>25</td>
+<td class="rank">188</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0FQ4XT8BN" target="_blank">B0FQ4XT8BN</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">15.6寸 Ryzen 5 7430U</td>
+<td class="title-cell" title="ACEMAGIC Ordinateurs Portables Gaming 15.6 Pouces Ryzen 5 7430U (6C/12threads,Jusqu‘à 4.3Ghz) Gamer Pc Portable 16Go Ram 512Go SSD DDR4*2 Double Canal,WiFi 6,1080FHD,Type C,HDMI,USB3.2,BT5.2">ACEMAGIC Ordinateurs Portables Gaming 15.6 Pouces Ryzen 5 7430U (6C/12threads,Ju...</td>
+<td class="price">€469.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">14</td>
+<td class="sales">97</td>
+<td class="date">2025-11-13</td>
+<td class="seller">🇫🇷 法国</td>
+</tr>
+<tr>
+<td>26</td>
+<td class="rank">199</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0G52ZBMLJ" target="_blank">B0G52ZBMLJ</a></td>
+<td class="brand">Energizer</td>
+<td class="config">18.5寸 Ryzen 5</td>
+<td class="title-cell" title="Energizer PACKCONFORT Pro 18 - PC Portable 18,5” HD+ AMD Ryzen 5 3.7GHz 16Go RAM, 512Go SSD Nvme Vega 8, Windows 11, AZERTY + Écran LCD 18,5” LCD Full HD 100Hz Laptop Double-écran">Energizer PACKCONFORT Pro 18 - PC Portable 18,5” HD+ AMD Ryzen 5 3.7GHz 16Go RAM...</td>
+<td class="price">€599.50</td>
+<td class="rating">⭐3.6</td>
+<td class="reviews">68</td>
+<td class="sales">98</td>
+<td class="date">2025-12-17</td>
+<td class="seller">🇫🇷 法国</td>
+</tr>
+</tbody></table>
+</div>
+<div id="FR-2in1" style="display:none">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">13</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0DFQBSQBL" target="_blank">B0DFQBSQBL</a></td>
+<td class="brand">KOOFORWAY</td>
+<td class="config">8寸 N150 512G</td>
+<td class="title-cell" title="Mini Ordinateur Portable 2 en 1, écran Tactile Rotatif HD, Prend en Charge l’écriture Manuscrite Windows 11 Pro, Petit Ordinateur Portable, N150, 12 Go RAM, 512 Go SSD, Wi-FI (N95(12GB+512GB))">Mini Ordinateur Portable 2 en 1, écran Tactile Rotatif HD, Prend en Charge l’écr...</td>
+<td class="price">€449.00</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">269</td>
+<td class="sales">60</td>
+<td class="date">2025-06-05</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">86</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0FN7TNQPB" target="_blank">B0FN7TNQPB</a></td>
+<td class="brand">BNCF</td>
+<td class="config">11寸 N150</td>
+<td class="title-cell" title="BNCF PC Portable 2-en-1 11 Pouces, Écran Tactile Win 11 Compatible avec Twin Lake N150, 12 Go de RAM 256 Go SSD, Tablet IPS FHD 1920 x1200 USB-C/HDMI WiFi 6 avec Clavier Magnétique et Kickstand">BNCF PC Portable 2-en-1 11 Pouces, Écran Tactile Win 11 Compatible avec Twin Lak...</td>
+<td class="price">€826.47</td>
+<td class="rating">⭐3.2</td>
+<td class="reviews">7</td>
+<td class="sales">5</td>
+<td class="date">2025-09-11</td>
+<td class="seller">🇹🇷 土耳其</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">90</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0FN82N3C6" target="_blank">B0FN82N3C6</a></td>
+<td class="brand">BNCF</td>
+<td class="config">11寸 N150</td>
+<td class="title-cell" title="BNCF PC Portable 2-en-1 11 Pouces, Écran Tactile Win 11 Compatible avec Twin Lake N150, 12 Go de RAM 512 Go SSD, Tablet IPS FHD 1920 x1200 USB-C/HDMI WiFi 6 avec Clavier Magnétique et Kickstand">BNCF PC Portable 2-en-1 11 Pouces, Écran Tactile Win 11 Compatible avec Twin Lak...</td>
+<td class="price">€937.70</td>
+<td class="rating">⭐3.4</td>
+<td class="reviews">19</td>
+<td class="sales">5</td>
+<td class="date">2025-09-11</td>
+<td class="seller">🇹🇷 土耳其</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">91</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0DYG7NCK1" target="_blank">B0DYG7NCK1</a></td>
+<td class="brand">GPD</td>
+<td class="config">8.8寸 Ryzen 7 8840U 16G 蓝色</td>
+<td class="title-cell" title="GPD Pocket 4 (8840U) - Ultra Mobile PC en aluminium avec Windows 11, Écran 8.8“ Ultra HD rotatif 180°, Ryzen 7 8840U, RAM 16 Go LPDDR5x, SSD NVMe 1 To, Wi-Fi 6E, Ethernet 2.5G, Bluetooth 5.3">GPD Pocket 4 (8840U) - Ultra Mobile PC en aluminium avec Windows 11, Écran 8.8“ ...</td>
+<td class="price">€1,499.99</td>
+<td class="rating">⭐4.7</td>
+<td class="reviews">4</td>
+<td class="sales">13</td>
+<td class="date">2025-03-10</td>
+<td class="seller">🇮🇹 意大利</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">98</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0F4QDPS21" target="_blank">B0F4QDPS21</a></td>
+<td class="brand">GPD</td>
+<td class="config">8.8寸 Ryzen Ai 9</td>
+<td class="title-cell" title="GPD Pocket 4 (AI 9 HX370) – Ordinateur portable en aluminium avec Windows 11, écran Ultra HD 8,8”, rotation à 180°, Ryzen AI 9 HX370, 32 Go LPDDR5x, SSD NVMe 2 To, Wi-Fi 6E, Ethernet 2.5G">GPD Pocket 4 (AI 9 HX370) – Ordinateur portable en aluminium avec Windows 11, éc...</td>
+<td class="price">€2,099.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">7</td>
+<td class="sales">5</td>
+<td class="date">2025-04-21</td>
+<td class="seller">🇮🇹 意大利</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">145</td>
+<td class="asin"><a href="https://amazon.fr/dp/B0FPFLV3ZD" target="_blank">B0FPFLV3ZD</a></td>
+<td class="brand">LONGEVINCE</td>
+<td class="config">10.95寸 N95 16G 960G</td>
+<td class="title-cell" title="LONGEVINCE Ordinateur Portable 2 en 1 10,95” Tactile 360°,Celeron N95 (3,4 GHz Turbo),16 Go DDR5,Windows 11, Écran 2000 x1200,Stylet Inclus,Clavier AZERTY Rétroéclairé,Boîtier Métal(Gris, 16G+960G SSD">LONGEVINCE Ordinateur Portable 2 en 1 10,95” Tactile 360°,Celeron N95 (3,4 GHz T...</td>
+<td class="price">€469.00</td>
+<td class="rating">⭐3.6</td>
+<td class="reviews">8</td>
+<td class="sales">10</td>
+<td class="date">2025-09-18</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="country-section" id="section-IT">
+<div id="IT-traditional" style="display:block">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">22</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GXK38KRK" target="_blank">B0GXK38KRK</a></td>
+<td class="brand">CHIFUYOU</td>
+<td class="config">15.6寸 I5-7Y54 16G 512G</td>
+<td class="title-cell" title="2026 Computer portatile 512 GB SSD 16 GB RAM PC portatile commerciale 15,6 pollici Gaming portatile i5-7Y54 fino a 3,2 GHz, Win 11, 1920 x 1080p, 5000 mAh, tastiera retroilluminata">2026 Computer portatile 512 GB SSD 16 GB RAM PC portatile commerciale 15,6 polli...</td>
+<td class="price">€342.93</td>
+<td class="rating">⭐4</td>
+<td class="reviews">21</td>
+<td class="sales">190</td>
+<td class="date">2026-05-12</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">25</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GQYYVKSC" target="_blank">B0GQYYVKSC</a></td>
+<td class="brand">Kayoote</td>
+<td class="config">15.6寸 Celeron 8G 128G</td>
+<td class="title-cell" title="2026 PC Portatile 15.6 Pollici Win11 Pro Celeron 5205U Computer Portatile 8GB RAM 128GB SSD IPS FHD 1920*1080 Laptop USB 3.0 Mini HDMI Notebook Con Tastiera retroilluminata sblocco per impront">2026 PC Portatile 15.6 Pollici Win11 Pro Celeron 5205U Computer Portatile 8GB RA...</td>
+<td class="price">€199.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">15</td>
+<td class="sales">177</td>
+<td class="date">2026-03-06</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">38</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GYHJVGR5" target="_blank">B0GYHJVGR5</a></td>
+<td class="brand">FUNYET</td>
+<td class="config">15.6寸 I5-6200U 16G 512G</td>
+<td class="title-cell" title="FUNYET Pc Portatile 15,6 Pollici i5-6200U(fino a 2.80 Ghz), 16GB RAM 512GB SSD Laptop, Win11 Notebook con WiFi5, BT4.2, USB3.0, HDMI, Type-C, 5000mAh, Tastiera Retroilluminata Computer Portatile">FUNYET Pc Portatile 15,6 Pollici i5-6200U(fino a 2.80 Ghz), 16GB RAM 512GB SSD L...</td>
+<td class="price">€324.89</td>
+<td class="rating">⭐5</td>
+<td class="reviews">15</td>
+<td class="sales">153</td>
+<td class="date">2026-05-13</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">44</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GQZL8N2W" target="_blank">B0GQZL8N2W</a></td>
+<td class="brand">NAIKLULU</td>
+<td class="config">15.6寸 M3 16G 256G</td>
+<td class="title-cell" title="NAIKLULU 15,6 pollici Pc Portatile 2026 Processore M3-6Y30, 16 GB RAM 256 GB SSD Computer Portatile Laptop, Schermo Full HD 1920 x 1080P, Batteria 5000 mAh, Webcam integrata, Slot per scheda TF">NAIKLULU 15,6 pollici Pc Portatile 2026 Processore M3-6Y30, 16 GB RAM 256 GB SSD...</td>
+<td class="price">€273.44</td>
+<td class="rating">⭐4.9</td>
+<td class="reviews">10</td>
+<td class="sales">94</td>
+<td class="date">2026-03-18</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">51</td>
+<td class="asin"><a href="https://amazon.it/dp/B0FQP3G9HW" target="_blank">B0FQP3G9HW</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 I5-8210Y 24G 512G 蓝色</td>
+<td class="title-cell" title="Notebook Ultra Leggero 15.6“ FHD Core i5-8210Y (fino a 3.6GHz) 24GB RAM 512GB SSD + Espandibile 1TB WiFi 5 Bluetooth 5.0 HDMI Cerniera 180° Ideale per Studenti, Lavoro da Casa e Ufficio">Notebook Ultra Leggero 15.6“ FHD Core i5-8210Y (fino a 3.6GHz) 24GB RAM 512GB SS...</td>
+<td class="price">€379.99</td>
+<td class="rating">⭐4.8</td>
+<td class="reviews">14</td>
+<td class="sales">99</td>
+<td class="date">2025-10-21</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">56</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GRGGJDVK" target="_blank">B0GRGGJDVK</a></td>
+<td class="brand">NAIKLULU</td>
+<td class="config">15.6寸 M3 16G 512G</td>
+<td class="title-cell" title="NAIKLULU 15,6 Pollici Computer Portatile 2026, Processore M3-6Y30, 16GB RAM 512GB SSD Laptop Pc Portatile, Full HD 1920 x1080P, Batteria 5000mAh, Webcam, WiFi 5, Slot Scheda TF">NAIKLULU 15,6 Pollici Computer Portatile 2026, Processore M3-6Y30, 16GB RAM 512G...</td>
+<td class="price">€308.64</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">11</td>
+<td class="sales">120</td>
+<td class="date">2026-04-16</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">73</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GRGJC19S" target="_blank">B0GRGJC19S</a></td>
+<td class="brand">NAIKLULU</td>
+<td class="config">15.6寸 M3 16G 256G</td>
+<td class="title-cell" title="NAIKLULU 15,6 Pollici Computer Portatile 2026, Processore M3-6Y30, 16GB RAM 256GB SSD Laptop Pc Portatile, Full HD 1920 x1080P, Batteria 5000mAh, Webcam, WiFi 5, Slot Scheda TF">NAIKLULU 15,6 Pollici Computer Portatile 2026, Processore M3-6Y30, 16GB RAM 256G...</td>
+<td class="price">€356.11</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">10</td>
+<td class="sales">126</td>
+<td class="date">2026-04-05</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">76</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GR57VS6T" target="_blank">B0GR57VS6T</a></td>
+<td class="brand">Tivique</td>
+<td class="config">16寸 Ryzen 7 16G 512G</td>
+<td class="title-cell" title="16“ PC Portatile Gaming Ryzen 7 H255 Fino a 4,9 GHz, 8 core 16 thread, 16 GB RAM DDR5 4800 MHz, SSD 512 GB, 1920 x 1200 FHD Display Computer Portatile, Tastiera Retroilluminata Laptop, WiFi 6">16“ PC Portatile Gaming Ryzen 7 H255 Fino a 4,9 GHz, 8 core 16 thread, 16 GB RAM...</td>
+<td class="price">€619.99</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">10</td>
+<td class="sales">173</td>
+<td class="date">2026-03-12</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">77</td>
+<td class="asin"><a href="https://amazon.it/dp/B0DY74M411" target="_blank">B0DY74M411</a></td>
+<td class="brand">LONGEVINCE</td>
+<td class="config">10.1寸 N4000 256G</td>
+<td class="title-cell" title="Computer Portatile 10.1 pollici mini laptop(0,79 kg),ultra sottile e leggero netbook 11,Celeron N4000,8 G DDR4,webcam,USB 3.0,tipo C,HDMI,Layout Italiano (Grigio, 8GB+256GB)">Computer Portatile 10.1 pollici mini laptop(0,79 kg),ultra sottile e leggero net...</td>
+<td class="price">€279.00</td>
+<td class="rating">⭐3.7</td>
+<td class="reviews">50</td>
+<td class="sales">78</td>
+<td class="date">2025-04-04</td>
+<td class="seller">🇫🇷 法国</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">90</td>
+<td class="asin"><a href="https://amazon.it/dp/B0H2J19SNQ" target="_blank">B0H2J19SNQ</a></td>
+<td class="brand">Breloom</td>
+<td class="config">15.6寸 Ryzen 3 3250C 128G</td>
+<td class="title-cell" title="2026 PC Portatile 15.6“, Laptop AMD Ryzen 3 3250C (Up to 3.5GHz), 8GB Dual-Channel DDR4 128GB SSD Computer Portatile, Type-C completo, Notebook con Win 11, Impronta, Tastiera retroilluminata, Wi-Fi 6">2026 PC Portatile 15.6“, Laptop AMD Ryzen 3 3250C (Up to 3.5GHz), 8GB Dual-Chann...</td>
+<td class="price">€225.99</td>
+<td class="rating">⭐4.8</td>
+<td class="reviews">10</td>
+<td class="sales">73</td>
+<td class="date">2026-05-26</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>11</td>
+<td class="rank">93</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GXGCYQMP" target="_blank">B0GXGCYQMP</a></td>
+<td class="brand">Kayoote</td>
+<td class="config">15.6寸 I3-6100U 8G 256G</td>
+<td class="title-cell" title="Kayoote Computer Portatile 15.6 Pollici, Processore i3-6100U Laptop Business, 8GB DDR3 256GB SSD PC Studenti, Win 11 Pro, Impronta Digitale, USB 3.0, HDMI, WiFi, BT, Tastiera Retroilluminata RGB">Kayoote Computer Portatile 15.6 Pollici, Processore i3-6100U Laptop Business, 8G...</td>
+<td class="price">€219.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">1</td>
+<td class="sales">70</td>
+<td class="date">2026-04-21</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>12</td>
+<td class="rank">134</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GRVWBY9P" target="_blank">B0GRVWBY9P</a></td>
+<td class="brand">Tivique</td>
+<td class="config">15.6寸 Ryzen 7 7730U 512G</td>
+<td class="title-cell" title="PC Portatile Gaming, Ryzen 7 7730U, Fino a 4,5 GHz, 8 Core 16 Thread, 16 GB di RAM DDR5, SSD da 512 GB, 15,6 Pollici FHD Display Computer Portatile, WiFi 6.0, HDMI, Type-C, Laptop per Ufficio">PC Portatile Gaming, Ryzen 7 7730U, Fino a 4,5 GHz, 8 Core 16 Thread, 16 GB di R...</td>
+<td class="price">€529.99</td>
+<td class="rating">⭐3.3</td>
+<td class="reviews">18</td>
+<td class="sales">107</td>
+<td class="date">2026-03-18</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>13</td>
+<td class="rank">147</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GXVPZP17" target="_blank">B0GXVPZP17</a></td>
+<td class="brand">Tivique</td>
+<td class="config">15.6寸 Ryzen 5 7430U 16G 512G</td>
+<td class="title-cell" title="PC Portatile 15.6' FHD 1920 x1080, Ryzen 5 7430U Processore Fino a 4.3 GHz Gaming Laptop 16GB RAM DDR4, 512GB SSD M.2 NVMe, Laptop WiFi 6, BT5.2, Webcam, USB3.2, HDMI, Type-C, 54.7 Wh Batteria">PC Portatile 15.6' FHD 1920 x1080, Ryzen 5 7430U Processore Fino a 4.3 GHz Gamin...</td>
+<td class="price">€479.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">3</td>
+<td class="sales">173</td>
+<td class="date">2026-05-07</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+</tbody></table>
+</div>
+<div id="IT-2in1" style="display:none">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">29</td>
+<td class="asin"><a href="https://amazon.it/dp/B0GSJVDDCB" target="_blank">B0GSJVDDCB</a></td>
+<td class="brand">Amita</td>
+<td class="config">11寸 N95 16G 512G</td>
+<td class="title-cell" title="Amita Convertibile 2 in 1 11” FHD Touchscreen, Processore N95 12ª Gen (fino a 3.4 GHz), 16GB RAM DDR5, 512GB SSD, Porta Type-C, Rotazione 360°, Tastiera retroilluminata (Grigio, 512GB)">Amita Convertibile 2 in 1 11” FHD Touchscreen, Processore N95 12ª Gen (fino a 3....</td>
+<td class="price">€389.90</td>
+<td class="rating">⭐5</td>
+<td class="reviews">1</td>
+<td class="sales">8</td>
+<td class="date">2026-03-28</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">37</td>
+<td class="asin"><a href="https://amazon.it/dp/B0F48G7RM2" target="_blank">B0F48G7RM2</a></td>
+<td class="brand">BNCF</td>
+<td class="config">11寸 N150 12G 512G</td>
+<td class="title-cell" title="BNCF NewBook 11 Laptop Tablet 2-in-1, Twin Lake N150 12GB RAM LPDDR5 512GB SSD, Win 11 Pro PC 11” Schermo Touch FHD, Supporto Micro HDMI con Tastiera Magnetica Pogo Pin e Kickstand">BNCF NewBook 11 Laptop Tablet 2-in-1, Twin Lake N150 12GB RAM LPDDR5 512GB SSD, ...</td>
+<td class="price">€369.99</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">201</td>
+<td class="sales">23</td>
+<td class="date">2025-07-01</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">41</td>
+<td class="asin"><a href="https://amazon.it/dp/B0FJXTN8CC" target="_blank">B0FJXTN8CC</a></td>
+<td class="brand">LONGEVINCE</td>
+<td class="config">10.95寸 N95 12G 512G</td>
+<td class="title-cell" title="LONGEVINCE Mini tablet laptop 2-in-1 da 10,95 con touchscreen,rotazione a 360°PC portatile,Celeron N95, 1920 x1200,12GB DDR5, layout tastiera italiana,BT5.0 Win11pro,notebook(Grigio, 12+512G SSD)">LONGEVINCE Mini tablet laptop 2-in-1 da 10,95 con touchscreen,rotazione a 360°PC...</td>
+<td class="price">€399.00</td>
+<td class="rating">⭐3.9</td>
+<td class="reviews">9</td>
+<td class="sales">22</td>
+<td class="date">2025-08-05</td>
+<td class="seller">🇫🇷 法国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">59</td>
+<td class="asin"><a href="https://amazon.it/dp/B0F4QDPS21" target="_blank">B0F4QDPS21</a></td>
+<td class="brand">GPD</td>
+<td class="config">8.8寸 Ryzen Ai 9 32G 2TB 蓝色</td>
+<td class="title-cell" title="GPD Pocket 4 (AI 9 HX370) - Ultra Mobile PC in alluminio con Windows 11, Display 8.8“ Ultra HD rotabile 180°, Ryzen AI 9 HX370, RAM 32 GB LPDDR5x, SSD NVMe 2 TB, Wi-Fi 6E, Ethernet 2.5G, Bluetooth 5.3">GPD Pocket 4 (AI 9 HX370) - Ultra Mobile PC in alluminio con Windows 11, Display...</td>
+<td class="price">€2,099.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">7</td>
+<td class="sales">5</td>
+<td class="date">2025-04-19</td>
+<td class="seller">🇮🇹 意大利</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">71</td>
+<td class="asin"><a href="https://amazon.it/dp/B0FDGPQT7K" target="_blank">B0FDGPQT7K</a></td>
+<td class="brand">RUGLINE</td>
+<td class="config">8寸 N150 12G 512G</td>
+<td class="title-cell" title="RUGLINE Mini Laptop 2 in 1 Win 11, HD Touchscreen Girevole per Scrittura a Mano, 12 GB RAM 512 GB SSD, Tastiera Retroilluminata, N150, 2 MP, WiFi 6, BT5.2">RUGLINE Mini Laptop 2 in 1 Win 11, HD Touchscreen Girevole per Scrittura a Mano,...</td>
+<td class="price">€419.75</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">5</td>
+<td class="sales">8</td>
+<td class="date">2025-07-31</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">162</td>
+<td class="asin"><a href="https://amazon.it/dp/B0F9P845T2" target="_blank">B0F9P845T2</a></td>
+<td class="brand">KOOSMILE</td>
+<td class="config">8寸 N150 12G 1TB</td>
+<td class="title-cell" title="KOOSMILE 8“ Touchscreen Laptop, Mini Laptop 2 in 1 con Tastiera 12GB LPDDR5-RAM, 512GB/1TB SSD, Wi-Fi 6, BT 5.2, HDMI, fotocamera 2 MP, computer convertibile (N150-12GB+512GB)">KOOSMILE 8“ Touchscreen Laptop, Mini Laptop 2 in 1 con Tastiera 12GB LPDDR5-RAM,...</td>
+<td class="price">€576.46</td>
+<td class="rating">⭐4</td>
+<td class="reviews">270</td>
+<td class="sales">5</td>
+<td class="date">2025-07-01</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">198</td>
+<td class="asin"><a href="https://amazon.it/dp/B0D7RLW994" target="_blank">B0D7RLW994</a></td>
+<td class="brand">WSFSDAN</td>
+<td class="config">10.5寸 N100 12G 1TB</td>
+<td class="title-cell" title="MiniBook X - Computer portatile touchscreen 2 in 1, SSD da 512 GB, 12 GB RAM, N100 (fino a 3,4 GHz), laptop convertibile Windows 11 da 10,5 pollici, SSD da 1 TB, 1920 x 1200, tastiera retroilluminata,">MiniBook X - Computer portatile touchscreen 2 in 1, SSD da 512 GB, 12 GB RAM, N1...</td>
+<td class="price">€497.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">1</td>
+<td class="sales">5</td>
+<td class="date">2024-07-19</td>
+<td class="seller">🇺🇸 美国</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="country-section" id="section-ES">
+<div id="ES-traditional" style="display:block">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">15</td>
+<td class="asin"><a href="https://amazon.es/dp/B0GQYYVKSC" target="_blank">B0GQYYVKSC</a></td>
+<td class="brand">Kayoote</td>
+<td class="config">15.6寸 5025U 8G 128G</td>
+<td class="title-cell" title="2026 Ordenador portátil 15.6 Pulgadas pc portátil 5025U, 8GB RAM 128GB SSD DDR4, Lector Huellas dactilares, 5G WiFi USB 3.0, 1920 x 1080 IPS FHD, 5000 mAh, Teclado Completo retroiluminado/Panel táctil">2026 Ordenador portátil 15.6 Pulgadas pc portátil 5025U, 8GB RAM 128GB SSD DDR4,...</td>
+<td class="price">€199.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">18</td>
+<td class="sales">169</td>
+<td class="date">2026-03-05</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">16</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FGDHVYZL" target="_blank">B0FGDHVYZL</a></td>
+<td class="brand">bvate</td>
+<td class="config">14寸 Celeron 256G</td>
+<td class="title-cell" title="bvate 2026 Ordenador Portátil 14 Pulgadas hasta 2,8 GHz Celeron 256GB SSD PC Portátils Soporta 1TB SSD Expansión con Ratón Inalámbricopara Trabajo-Estudio-Aprendizaje 1080 Mini Puerto Multimedia-Oro">bvate 2026 Ordenador Portátil 14 Pulgadas hasta 2,8 GHz Celeron 256GB SSD PC Por...</td>
+<td class="price">€239.99</td>
+<td class="rating">⭐4.8</td>
+<td class="reviews">55</td>
+<td class="sales">58</td>
+<td class="date">2026-05-19</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">20</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FQTZ3DWJ" target="_blank">B0FQTZ3DWJ</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 i5 16G 1TB</td>
+<td class="title-cell" title="MOGIKK Ordenador Portátil 15,6 Pulgadas con Office 365, 16GB RAM 1 TB SSD Celeron N95, PC Portátil 1920 * 1080 FHD WiFi5, Computadora Portátil con Touch ID y Teclado retroiluminado de tamaño Completo">MOGIKK Ordenador Portátil 15,6 Pulgadas con Office 365, 16GB RAM 1 TB SSD Celero...</td>
+<td class="price">€389.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">7</td>
+<td class="sales">74</td>
+<td class="date">2026-04-20</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">29</td>
+<td class="asin"><a href="https://amazon.es/dp/B0GY5HXSMD" target="_blank">B0GY5HXSMD</a></td>
+<td class="brand">FUNYET</td>
+<td class="config">15.6寸 M3 16G 512G</td>
+<td class="title-cell" title="FUNYET Nuevo Ordenador Portátil,2026 Laptop da 15,6 pollici, 16 GB RAM 512 GB SSD, Portátil Core M3-6Y30, IPS FHD 1920 x 1080 Notebook Laptop, 5000 mAh,180°Open,Type-C">FUNYET Nuevo Ordenador Portátil,2026 Laptop da 15,6 pollici, 16 GB RAM 512 GB SS...</td>
+<td class="price">€317.22</td>
+<td class="rating">⭐5</td>
+<td class="reviews">23</td>
+<td class="sales">65</td>
+<td class="date">2026-04-30</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">36</td>
+<td class="asin"><a href="https://amazon.es/dp/B0G2RQPG2R" target="_blank">B0G2RQPG2R</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 I5-7Y54 16G 512G</td>
+<td class="title-cell" title="Ordenador Portátil 15.6“ Full HD IPS Core i5-7Y54 hasta 3.2 GHz, 16 GB RAM SSD 512 GB, PC Portáti Win 11 + Office 365, Laptop Teclado Retroiluminado, Computadora Portátil HDMI USB3.0 WiFi 5 BT 4.2">Ordenador Portátil 15.6“ Full HD IPS Core i5-7Y54 hasta 3.2 GHz, 16 GB RAM SSD 5...</td>
+<td class="price">€379.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">12</td>
+<td class="sales">94</td>
+<td class="date">2026-01-08</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">46</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FQP7CYP2" target="_blank">B0FQP7CYP2</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 I3-8100Y 16G 512G 蓝色</td>
+<td class="title-cell" title="MOGIKK 15.6 Pulgadas Ordenador Portátil Core i3-8100Y Procesador 16GB RAM DDR3 512GB SSD PC Portátil Win 11 FHD IPS Teclado Numérico Laptop USB 3.0 Tipo-C Mini HDMI WiFi 5 Bluetooth 5.0">MOGIKK 15.6 Pulgadas Ordenador Portátil Core i3-8100Y Procesador 16GB RAM DDR3 5...</td>
+<td class="price">€309.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">22</td>
+<td class="sales">64</td>
+<td class="date">2025-10-11</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">48</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FVXKWYTK" target="_blank">B0FVXKWYTK</a></td>
+<td class="brand">Tivique</td>
+<td class="config">15.6寸 Ryzen 7 5825U 16G 1TB</td>
+<td class="title-cell" title="Tivique Ordenador portatil Gaming 15,6 Pulgadas Ryzen 7 5825U (hasta 4,5 GHz) Laptop DDR4 16 GB RAM 1 TB SSD Doble Ranura M.2 Ampliable 4 TB WiFi 6 Type-C 54,72 WH">Tivique Ordenador portatil Gaming 15,6 Pulgadas Ryzen 7 5825U (hasta 4,5 GHz) La...</td>
+<td class="price">€489.99</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">14</td>
+<td class="sales">44</td>
+<td class="date">2025-10-15</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">51</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FQ4Z851W" target="_blank">B0FQ4Z851W</a></td>
+<td class="brand">ACEMAGIC</td>
+<td class="config">17.3寸 N95 16G 512G</td>
+<td class="title-cell" title="ACEMAGIC 2026 Ordenador Portatil 17,3 pulgadas Procesador N95 Hasta 3,4 GHz Portátil 16GB Ram DDR4 512GB SSD Expansión 2TB, 1920 x 1080P FHD, HDMI, USB3.2, Type C, BT5, WiFi, Laptop Plata para Trabajo">ACEMAGIC 2026 Ordenador Portatil 17,3 pulgadas Procesador N95 Hasta 3,4 GHz Port...</td>
+<td class="price">€359.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">27</td>
+<td class="sales">64</td>
+<td class="date">2026-03-08</td>
+<td class="seller">🇫🇷 法国</td>
+</tr>
+<tr>
+<td>9</td>
+<td class="rank">65</td>
+<td class="asin"><a href="https://amazon.es/dp/B0D8WJ5DQ2" target="_blank">B0D8WJ5DQ2</a></td>
+<td class="brand">bvate</td>
+<td class="config">14寸 4G 256G</td>
+<td class="title-cell" title="bvate Ordenador Portátil 14“ Win11 8GB 256GB SSD Soporte 1TB SSD Expansión Portátil 2.4G+5G WiFi BT 4.2 USB HDMI 1920 x1080 FHD con Ratón Inalámbrico y Teclado Español Membrana - Plata">bvate Ordenador Portátil 14“ Win11 8GB 256GB SSD Soporte 1TB SSD Expansión Portá...</td>
+<td class="price">€259.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">443</td>
+<td class="sales">45</td>
+<td class="date">2024-07-28</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>10</td>
+<td class="rank">66</td>
+<td class="asin"><a href="https://amazon.es/dp/B0G2XXTYJF" target="_blank">B0G2XXTYJF</a></td>
+<td class="brand">PINSTONE</td>
+<td class="config">N4020 6G 128G 蓝色</td>
+<td class="title-cell" title="Ordenador portátil táctil plegable de 360°, portátil Celeron N4020, 6 GB RAM 128 GB SSD, WiFi (2,4 G/5G), Bluetooth, 1366 x 768 IPS, cámara web, PC portátil a medida para profesionales - Rosa">Ordenador portátil táctil plegable de 360°, portátil Celeron N4020, 6 GB RAM 128...</td>
+<td class="price">€214.00</td>
+<td class="rating">⭐3.7</td>
+<td class="reviews">27</td>
+<td class="sales">47</td>
+<td class="date">2026-02-27</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>11</td>
+<td class="rank">68</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FSL729CQ" target="_blank">B0FSL729CQ</a></td>
+<td class="brand">PINSTONE</td>
+<td class="config">14寸 N4000 6G 128G 蓝色</td>
+<td class="title-cell" title="PC Portátil 14 Pulgadas Celeron N4000 (hasta 2.6 GHz) , Computadora Portátil 6GB RAM 128GB SSD, Ordenador portátil W11 Pro Soporte WiFi, Bluetooth, USB 3.0 Mini HDMI, Estudiante/Oficina Laptop.">PC Portátil 14 Pulgadas Celeron N4000 (hasta 2.6 GHz) , Computadora Portátil 6GB...</td>
+<td class="price">€215.99</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">42</td>
+<td class="sales">82</td>
+<td class="date">2025-11-17</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>12</td>
+<td class="rank">71</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FR97M3X2" target="_blank">B0FR97M3X2</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 N150 16G 512G</td>
+<td class="title-cell" title="Ordenador Portátil 15.6 pulgadas N150 Procesador, Metal PC Portatil 16GB DDR4 RAM 512GB SSD, Laptop con Pantalla Ultra Estrecha FHD IPS, Teclado Retroiluminado, USB 3.0, Mini HDMI Computadora portátil">Ordenador Portátil 15.6 pulgadas N150 Procesador, Metal PC Portatil 16GB DDR4 RA...</td>
+<td class="price">€319.99</td>
+<td class="rating">⭐4</td>
+<td class="reviews">11</td>
+<td class="sales">58</td>
+<td class="date">2025-11-07</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>13</td>
+<td class="rank">72</td>
+<td class="asin"><a href="https://amazon.es/dp/B0G2LSK75J" target="_blank">B0G2LSK75J</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 M3 8G 256G 蓝色</td>
+<td class="title-cell" title="Ordenador Portátil 15.6“ Full HD IPS, Core M3 6Y30 hasta 2.2GHz, 8GB DDR3 RAM 256GB SSD, PC Portátil Delgada con Win 11 y Office 365, Laptop Teclado Numérico, Abatible de 180° WiFi 5, Bluetooth 4.2">Ordenador Portátil 15.6“ Full HD IPS, Core M3 6Y30 hasta 2.2GHz, 8GB DDR3 RAM 25...</td>
+<td class="price">€299.99</td>
+<td class="rating">⭐3.6</td>
+<td class="reviews">14</td>
+<td class="sales">84</td>
+<td class="date">2026-01-14</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>14</td>
+<td class="rank">72</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FPCLMK42" target="_blank">B0FPCLMK42</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 N4000 12G 256G</td>
+<td class="title-cell" title="MOGIKK Ordenador Portátil 15,6 Pulgadas 12 GB RAM 256 GB SSD N4000 Procesador Pantalla IPS Full HD WiFi 5 BT Mini HDMI Laptop Bisagra de 180 Grados Peso Ligero de 1,6 kg para Estudiantes y Empresas">MOGIKK Ordenador Portátil 15,6 Pulgadas 12 GB RAM 256 GB SSD N4000 Procesador Pa...</td>
+<td class="price">€279.99</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">8</td>
+<td class="sales">65</td>
+<td class="date">2025-12-17</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>15</td>
+<td class="rank">73</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FPFY35HN" target="_blank">B0FPFY35HN</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">16寸 i5 16G 1TB</td>
+<td class="title-cell" title="MOGIKK 16‘‘ Ordenador Portátil, PC Portatil Core i5 8210Y up 3.6GHz Procesador 16GB RAM 1TB SSD Computadora portátil 1920 * 1200 IPS, Laptop RJ45 USB 3.0 HDMI BT5.0 Teclado Numérico Retroiluminado">MOGIKK 16‘‘ Ordenador Portátil, PC Portatil Core i5 8210Y up 3.6GHz Procesador 1...</td>
+<td class="price">€399.99</td>
+<td class="rating">⭐3.7</td>
+<td class="reviews">6</td>
+<td class="sales">53</td>
+<td class="date">2025-12-12</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>16</td>
+<td class="rank">73</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FQP3G9HW" target="_blank">B0FQP3G9HW</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 I5-8210Y 24G 512G 蓝色</td>
+<td class="title-cell" title="MOGIKK Ordenador Portátil Ultraligero 15.6“ FHD Core i5-8210Y (hasta 3.6GHz) 24GB RAM 512GB SSD + Ampliable a 1TB WiFi 5 Bluetooth 5.0 HDMI Bisagra 180° Deal para Estudiantes Teletrabajo y Oficina">MOGIKK Ordenador Portátil Ultraligero 15.6“ FHD Core i5-8210Y (hasta 3.6GHz) 24G...</td>
+<td class="price">€369.99</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">16</td>
+<td class="sales">53</td>
+<td class="date">2025-11-11</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>17</td>
+<td class="rank">76</td>
+<td class="asin"><a href="https://amazon.es/dp/B0G3FHTKQN" target="_blank">B0G3FHTKQN</a></td>
+<td class="brand">DREAMFYRE</td>
+<td class="config">Ryzen 5 16G 512G</td>
+<td class="title-cell" title="DREAMFYRE - Ordenador Portátil Ryzen 5 Procesador (hasta 3,70 GHz), 16 GB RAM, 512 GB SSD,Pantalla FHD 1920 x1080,Wi-Fi 5 Doble Banda,PC Portátil Versátil para Oficina, Estudiantes y Teletrabajo.">DREAMFYRE - Ordenador Portátil Ryzen 5 Procesador (hasta 3,70 GHz), 16 GB RAM, 5...</td>
+<td class="price">€369.00</td>
+<td class="rating">⭐4.7</td>
+<td class="reviews">13</td>
+<td class="sales">43</td>
+<td class="date">2026-01-04</td>
+<td class="seller">🇪🇪 爱沙尼亚</td>
+</tr>
+<tr>
+<td>18</td>
+<td class="rank">77</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FPFQYL3Y" target="_blank">B0FPFQYL3Y</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 N5095 16G 512G 蓝色</td>
+<td class="title-cell" title="Ordenador Portátil 15,6“ FHD IPS Celeron N5095 (4C/4T, hasta 2,9 GHz) Procesador 16GB DDR4 RAM 512GB SSD Win 11 PC Portátil Desbloqueo por Huella Teclado Retroiluminado WiFi USB 3.0 HDMI Bluetooth">Ordenador Portátil 15,6“ FHD IPS Celeron N5095 (4C/4T, hasta 2,9 GHz) Procesador...</td>
+<td class="price">€299.99</td>
+<td class="rating">⭐3.7</td>
+<td class="reviews">11</td>
+<td class="sales">60</td>
+<td class="date">2025-10-24</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>19</td>
+<td class="rank">77</td>
+<td class="asin"><a href="https://amazon.es/dp/B0GYQWJV8Z" target="_blank">B0GYQWJV8Z</a></td>
+<td class="brand">FUNYET</td>
+<td class="config">15.6寸 i5 512G</td>
+<td class="title-cell" title="FUNYET Ordenador Portátil,2026 Laptop PC da 15,6 pollici, 16 GB di RAM, SSD da 512 GB, Core i5 6200U Portátil, IPS FHD 1920 * 1080 Notebook,WiFi5,5000 mAh,Tastiera retroilluminata">FUNYET Ordenador Portátil,2026 Laptop PC da 15,6 pollici, 16 GB di RAM, SSD da 5...</td>
+<td class="price">€360.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">2</td>
+<td class="sales">41</td>
+<td class="date">2026-05-09</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>20</td>
+<td class="rank">78</td>
+<td class="asin"><a href="https://amazon.es/dp/B0GY5VP3GQ" target="_blank">B0GY5VP3GQ</a></td>
+<td class="brand">FUNYET</td>
+<td class="config">15.6寸 I5-7Y54 512G</td>
+<td class="title-cell" title="FUNYET Ordenador Portátil Laptop,2026 Laptop Offerta da 15,6 Pollici,16 GB di RAM, SSD da 512 GB,Core i5-7Y54 PC Portátile,IPS FHD 1920 x1080 Notebook,5000 mAh,WiFi5,BT 5.0,Type-C">FUNYET Ordenador Portátil Laptop,2026 Laptop Offerta da 15,6 Pollici,16 GB di RA...</td>
+<td class="price">€342.94</td>
+<td class="rating">⭐3.4</td>
+<td class="reviews">3</td>
+<td class="sales">52</td>
+<td class="date">2026-05-11</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>21</td>
+<td class="rank">79</td>
+<td class="asin"><a href="https://amazon.es/dp/B0G2S7WJ16" target="_blank">B0G2S7WJ16</a></td>
+<td class="brand">Breloom</td>
+<td class="config">15.6寸 5205U 8G 512G</td>
+<td class="title-cell" title="2026 Ordenador Portatil 15.6“, Laptop con Win 11 Pro 5205U 8GB RAM 512GB SSD Computadora Portatil, USB 3.0 HDMI, FHD Display, Wi-Fi 5, Huella/Teclado retroiluminado – Portatiles baratos y buenos">2026 Ordenador Portatil 15.6“, Laptop con Win 11 Pro 5205U 8GB RAM 512GB SSD Com...</td>
+<td class="price">€255.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">10</td>
+<td class="sales">69</td>
+<td class="date">2025-12-04</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>22</td>
+<td class="rank">81</td>
+<td class="asin"><a href="https://amazon.es/dp/B0GN9GGZL8" target="_blank">B0GN9GGZL8</a></td>
+<td class="brand">AFFGUOK</td>
+<td class="config">15.6寸 Ryzen 3 3200U 16G 512G</td>
+<td class="title-cell" title="15,6 Pulgadas Ordenador Portátil Pantalla Táctil 2 en 1, Laptop 16GB RAM 512GB SSD, Win11 PC Portátil con Ryzen 3 3200U Procesador, Computadora Portátil 360° Pantalla Táctil 1080P FHD IPS Type-C RJ45">15,6 Pulgadas Ordenador Portátil Pantalla Táctil 2 en 1, Laptop 16GB RAM 512GB S...</td>
+<td class="price">€419.99</td>
+<td class="rating">⭐3.7</td>
+<td class="reviews">16</td>
+<td class="sales">61</td>
+<td class="date">2026-03-05</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>23</td>
+<td class="rank">81</td>
+<td class="asin"><a href="https://amazon.es/dp/B0GY35Z1W9" target="_blank">B0GY35Z1W9</a></td>
+<td class="brand">FUNYET</td>
+<td class="config">15.6寸 I7-7600U 16G 1TB</td>
+<td class="title-cell" title="FUNYET 15.6“ Ordenador Portátil Core i7-7600U (hasta 3.9 GHz), 16 GB RAM 1 TB SSD Laptop Win 11 GPU HD Graphics 620 Notebook, FHD 1920×1080, Type-C, Wi-Fi 5, BT, USB 3.0, HDMI y Teclado Retroiluminado">FUNYET 15.6“ Ordenador Portátil Core i7-7600U (hasta 3.9 GHz), 16 GB RAM 1 TB SS...</td>
+<td class="price">€424.17</td>
+<td class="rating">⭐5</td>
+<td class="reviews">23</td>
+<td class="sales">57</td>
+<td class="date">2026-05-12</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>24</td>
+<td class="rank">87</td>
+<td class="asin"><a href="https://amazon.es/dp/B0GXK3CFSV" target="_blank">B0GXK3CFSV</a></td>
+<td class="brand">CHIFUYOU</td>
+<td class="config">15.6寸 M3 16G 512G</td>
+<td class="title-cell" title="Ordenador Portátil 16 GB RAM SSD 512 GB 15,6 Pulgadas,M3-6Y30 (2,2 GHz),1920 x1080p, 5000 mAh/38,5 WH, Ranura para Tarjetas TF, cámara Web Panel táctil; Ideal para Estudiantes Profesionales">Ordenador Portátil 16 GB RAM SSD 512 GB 15,6 Pulgadas,M3-6Y30 (2,2 GHz),1920 x10...</td>
+<td class="price">€283.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">11</td>
+<td class="sales">114</td>
+<td class="date">2026-05-14</td>
+<td class="seller">🇬🇧 英国</td>
+</tr>
+<tr>
+<td>25</td>
+<td class="rank">87</td>
+<td class="asin"><a href="https://amazon.es/dp/B0GHR881V1" target="_blank">B0GHR881V1</a></td>
+<td class="brand">KeeUiU</td>
+<td class="config">15.6寸 3200U 16G 1TB</td>
+<td class="title-cell" title="KeeUiU 2 en 1 Ordenador Portátil 15,6 Pulgadas con Pantalla Táctil Procesador, Ryzen R3-3200U PC Portátil 16GB RAM 1TB SSD 360° Pantalla Táctil Win 11 Laptop FHD IPS RJ45 Teclado Retroiluminado HDMI">KeeUiU 2 en 1 Ordenador Portátil 15,6 Pulgadas con Pantalla Táctil Procesador, R...</td>
+<td class="price">€459.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">15</td>
+<td class="sales">48</td>
+<td class="date">2026-03-05</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>26</td>
+<td class="rank">101</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FPWZD78Y" target="_blank">B0FPWZD78Y</a></td>
+<td class="brand">MOGIKK</td>
+<td class="config">15.6寸 I3-1005G1 16G 512G</td>
+<td class="title-cell" title="Ordenador Portátil 15,6 Pulgadas, Core i3-1005G1 Procesador 16 GB RAM DDR4 512 GB SSD Win 11 PC Portátil, Laptop Teclado Digital Retroiluminado Desbloqueo Tipo C Batería Computadora portátil">Ordenador Portátil 15,6 Pulgadas, Core i3-1005G1 Procesador 16 GB RAM DDR4 512 G...</td>
+<td class="price">€339.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">14</td>
+<td class="sales">44</td>
+<td class="date">2025-10-14</td>
+<td class="seller">🇬🇷 希腊</td>
+</tr>
+<tr>
+<td>27</td>
+<td class="rank">101</td>
+<td class="asin"><a href="https://amazon.es/dp/B098TM6X27" target="_blank">B098TM6X27</a></td>
+<td class="brand">PRIXTON</td>
+<td class="config">15.6寸 N4020 4G 128G</td>
+<td class="title-cell" title="PRIXTON Ordenador portátil Netbook Pro con Pantalla 15.6”, Windows 11 Home, Procesador Intel N4020, RAM 4 GB, Memoria Interna 128 GB, Batería 5.000 mAh">PRIXTON Ordenador portátil Netbook Pro con Pantalla 15.6”, Windows 11 Home, Proc...</td>
+<td class="price">€223.99</td>
+<td class="rating">⭐3</td>
+<td class="reviews">7</td>
+<td class="sales">42</td>
+<td class="date">2021-07-09</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>28</td>
+<td class="rank">154</td>
+<td class="asin"><a href="https://amazon.es/dp/B0GSPV2BG6" target="_blank">B0GSPV2BG6</a></td>
+<td class="brand">Pryloxen</td>
+<td class="config">15.6寸 AMD 3050E 16G 512G</td>
+<td class="title-cell" title="Ordenador portátil |Portátiles 15,6“ Full HD | PC Ultra Delgado | Procesador 3050e Dual Core | 16 GB RAM | SSD 512 GB Ultra Rápido | Teclado Retroiluminado | Ideal para Oficina/Estudios | Plata">Ordenador portátil |Portátiles 15,6“ Full HD | PC Ultra Delgado | Procesador 305...</td>
+<td class="price">€380.00</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">3</td>
+<td class="sales">34</td>
+<td class="date">2026-03-20</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>29</td>
+<td class="rank">157</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FDKR3K86" target="_blank">B0FDKR3K86</a></td>
+<td class="brand">Kayoote</td>
+<td class="config">14.1寸 i5 8G 128G</td>
+<td class="title-cell" title="Kayoote 14.1 Pulgadas Ordenador Portátil 8GB RAM 128GB SSD, PC Portatil Pentium N3710 CPU, Win 11 Pro, HD Pantalla Ordenador Portatil con Protector de Teclado español, TF/Mini-HDMI/USB3.0/WIFI5/BT5.0">Kayoote 14.1 Pulgadas Ordenador Portátil 8GB RAM 128GB SSD, PC Portatil Pentium ...</td>
+<td class="price">€182.99</td>
+<td class="rating">⭐5</td>
+<td class="reviews">1</td>
+<td class="sales">30</td>
+<td class="date">2025-06-28</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+</tbody></table>
+</div>
+<div id="ES-2in1" style="display:none">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">16</td>
+<td class="asin"><a href="https://amazon.es/dp/B0C1YKGGWY" target="_blank">B0C1YKGGWY</a></td>
+<td class="brand">NENCHIN</td>
+<td class="config">I5-1340P 16G 512G</td>
+<td class="title-cell" title="Intel NUC 13 Pro NUC13ANHi5 Arena Canyon, 16GB RAM 512GB SSD, Intel Core i5-1340P, Win 11 Pro Mini computadora de Escritorio, 8K/4K UHD, Gigabit Ethernet/WiFi-6/VESA para">Intel NUC 13 Pro NUC13ANHi5 Arena Canyon, 16GB RAM 512GB SSD, Intel Core i5-1340...</td>
+<td class="price">€759.00</td>
+<td class="rating">⭐4.8</td>
+<td class="reviews">85</td>
+<td class="sales">37</td>
+<td class="date">2024-09-19</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">21</td>
+<td class="asin"><a href="https://amazon.es/dp/B0F48G7RM2" target="_blank">B0F48G7RM2</a></td>
+<td class="brand">BNCF</td>
+<td class="config">11寸 N150 12G 512G</td>
+<td class="title-cell" title="BNCF NewBook 11 Laptop Tablet 2-en-1, Twin Lake N150 12GB RAM LPDDR5 512GB SSD, Win 11 Pro PC Pantalla Táctil FHD 11”, Soporte Micro HDMI con Teclado Magnético Pogo Pin y Soporte">BNCF NewBook 11 Laptop Tablet 2-en-1, Twin Lake N150 12GB RAM LPDDR5 512GB SSD, ...</td>
+<td class="price">€369.99</td>
+<td class="rating">⭐4.2</td>
+<td class="reviews">200</td>
+<td class="sales">14</td>
+<td class="date">2025-07-01</td>
+<td class="seller">🇭🇰 香港</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">36</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FDGPQT7K" target="_blank">B0FDGPQT7K</a></td>
+<td class="brand">RUGLINE</td>
+<td class="config">8寸 N150 12G 512G</td>
+<td class="title-cell" title="RUGLINE Mini portátil 8 Pulgadas, 2 en 1 Win 11, Pantalla HD giratoria, 12 GB RAM 512 GB SSD, Teclado retroiluminado, N150, cámara 2M">RUGLINE Mini portátil 8 Pulgadas, 2 en 1 Win 11, Pantalla HD giratoria, 12 GB RA...</td>
+<td class="price">€419.75</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">5</td>
+<td class="sales">7</td>
+<td class="date">2025-07-31</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">81</td>
+<td class="asin"><a href="https://amazon.es/dp/B0CHDYJLYT" target="_blank">B0CHDYJLYT</a></td>
+<td class="brand">Bigmachine</td>
+<td class="config">7寸</td>
+<td class="title-cell" title="Bigmachine 7 Inch Mini computadora portátil PC Netbook para niños Android 12 Quad Core 32GB WiFi Cámara incorporada Youtube Reproductor de Flash (Verde)">Bigmachine 7 Inch Mini computadora portátil PC Netbook para niños Android 12 Qua...</td>
+<td class="price">€129.00</td>
+<td class="rating">⭐3.1</td>
+<td class="reviews">31</td>
+<td class="sales">17</td>
+<td class="date">2023-12-23</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">84</td>
+<td class="asin"><a href="https://amazon.es/dp/B0G1LZ17J7" target="_blank">B0G1LZ17J7</a></td>
+<td class="brand">PREMIER</td>
+<td class="config">15寸 N97 128G</td>
+<td class="title-cell" title="TPV Premier KT-2000 Intel N97-8GB- 128GB SSD- 15’- Táctil- WiFi">TPV Premier KT-2000 Intel N97-8GB- 128GB SSD- 15’- Táctil- WiFi</td>
+<td class="price">€489.33</td>
+<td class="rating">-</td>
+<td class="reviews">0</td>
+<td class="sales">7</td>
+<td class="date">2025-11-11</td>
+<td class="seller">🇪🇸 西班牙</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">168</td>
+<td class="asin"><a href="https://amazon.es/dp/B0F4QDPS21" target="_blank">B0F4QDPS21</a></td>
+<td class="brand">GPD</td>
+<td class="config">8.8寸 Ryzen Ai 9 32G 2TB 蓝色</td>
+<td class="title-cell" title="GPD Pocket 4 (AI 9 HX370) Ultra Mobile PC de aluminio con Windows 11, pantalla 8.8“ Ultra HD giratoria 180°, Ryzen AI 9 HX370, RAM 32 GB LPDDR5x, SSD NVMe 2 TB, Wi-Fi 6E, Ethernet 2.5G, Bluetooth 5.3">GPD Pocket 4 (AI 9 HX370) Ultra Mobile PC de aluminio con Windows 11, pantalla 8...</td>
+<td class="price">€2,099.99</td>
+<td class="rating">⭐4.3</td>
+<td class="reviews">7</td>
+<td class="sales">5</td>
+<td class="date">2025-04-22</td>
+<td class="seller">🇮🇹 意大利</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">189</td>
+<td class="asin"><a href="https://amazon.es/dp/B0FN82N3C6" target="_blank">B0FN82N3C6</a></td>
+<td class="brand">BNCF</td>
+<td class="config">11寸 N150 512G</td>
+<td class="title-cell" title="BNCF Laptops 2-en-1 de 11 Pulgadas, PC con Pantalla Táctil Win 11 Compatible con Twin Lake N150, 12GB de RAM 512GB SSD, Tablet FHD 1920 x1200 USB-C/HDMI con Teclado Magnético y Soporte Plegable">BNCF Laptops 2-en-1 de 11 Pulgadas, PC con Pantalla Táctil Win 11 Compatible con...</td>
+<td class="price">€730.39</td>
+<td class="rating">⭐3.4</td>
+<td class="reviews">159</td>
+<td class="sales">5</td>
+<td class="date">2025-09-16</td>
+<td class="seller">🇹🇷 土耳其</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="country-section" id="section-AE">
+<div id="AE-traditional" style="display:block">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">21</td>
+<td class="asin"><a href="https://amazon.ae/dp/B0CNPLCQ12" target="_blank">B0CNPLCQ12</a></td>
+<td class="brand">ist computers</td>
+<td class="config">15.6寸 I5-1334U 16G 512G</td>
+<td class="title-cell" title="HP 15 Laptop (15.6“ FHD Touchscreen, Intel Core i5-1334U (> i7-1255U), 16GB RAM, 512GB SSD) for Business, Students, Home, 10-Hour Long Battery Life, Webcam, Wi-Fi 6, Numpad, Fast Charge, Win 11 Pro">HP 15 Laptop (15.6“ FHD Touchscreen, Intel Core i5-1334U (> i7-1255U), 16GB RAM,...</td>
+<td class="price">AED2,139.00</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">58</td>
+<td class="sales">13</td>
+<td class="date">1970-01-01</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">63</td>
+<td class="asin"><a href="https://amazon.ae/dp/B0FQJH7V6K" target="_blank">B0FQJH7V6K</a></td>
+<td class="brand">Infinix</td>
+<td class="config">14寸 i5 512G 灰色</td>
+<td class="title-cell" title="Infinix INBOOK Air (XL442) Llaptop With 14-Inch Core i5 1235U 8GB/512GB Windows 11 Home English/Arabic Grey">Infinix INBOOK Air (XL442) Llaptop With 14-Inch Core i5 1235U 8GB/512GB Windows ...</td>
+<td class="price">AED1,199.00</td>
+<td class="rating">-</td>
+<td class="reviews">0</td>
+<td class="sales">8</td>
+<td class="date">1970-01-01</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">73</td>
+<td class="asin"><a href="https://amazon.ae/dp/B0FQJFFZNZ" target="_blank">B0FQJFFZNZ</a></td>
+<td class="brand">Infinix</td>
+<td class="config">15.6寸 5500U 8G 512G 银色</td>
+<td class="title-cell" title="Infinix XBOOK 15 Laptop With 15.6 Inch (1920 * 1080) Display R5-5500U Processor/8GB RAM /512GB /Windows 11 Home English/Arabic Silver">Infinix XBOOK 15 Laptop With 15.6 Inch (1920 * 1080) Display R5-5500U Processor/...</td>
+<td class="price">AED1,099.00</td>
+<td class="rating">⭐5</td>
+<td class="reviews">3</td>
+<td class="sales">14</td>
+<td class="date">1970-01-01</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">166</td>
+<td class="asin"><a href="https://amazon.ae/dp/B0H228MWN2" target="_blank">B0H228MWN2</a></td>
+<td class="brand">Generic</td>
+<td class="config">17.3寸 I7-8550U 16G 512G 灰色</td>
+<td class="title-cell" title="A SUS VivoBook Pro Thin & Light Gaming Laptop i7-8550U 17.3“ FHD 16GB RAM 512GB SSD GeForce GTX 1050 4GB Graphics Backlit KB Star Gray">A SUS VivoBook Pro Thin & Light Gaming Laptop i7-8550U 17.3“ FHD 16GB RAM 512GB ...</td>
+<td class="price">AED0.00</td>
+<td class="rating">-</td>
+<td class="reviews">0</td>
+<td class="sales">5</td>
+<td class="date">1970-01-01</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">199</td>
+<td class="asin"><a href="https://amazon.ae/dp/B0H1SC5CS2" target="_blank">B0H1SC5CS2</a></td>
+<td class="brand">Generic</td>
+<td class="config">15.4寸 i7 16G 512G 银色</td>
+<td class="title-cell" title="AppIe Mac Book Pro A1398 (2012) Laptop With 15.4-Inch Display, Intel-Core i7 Processor/3rd Gen/16GB RAM/512GB SSD/1.5GB Intel Iris Graphics English Silver Renewed (Renewed)">AppIe Mac Book Pro A1398 (2012) Laptop With 15.4-Inch Display, Intel-Core i7 Pro...</td>
+<td class="price">AED419.00</td>
+<td class="rating">-</td>
+<td class="reviews">0</td>
+<td class="sales">5</td>
+<td class="date">1970-01-01</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+</tbody></table>
+</div>
+<div id="AE-2in1" style="display:none">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">17</td>
+<td class="asin"><a href="https://amazon.ae/dp/B0GBPDBSFF" target="_blank">B0GBPDBSFF</a></td>
+<td class="brand">Generic</td>
+<td class="config">11.6寸 AMD A4 4G 32G</td>
+<td class="title-cell" title="Leno-vo 300e Chromebook 2nd Gen Touchscreen Laptop, 11.6in 2 in 1 Laptop, AMD A4-9th 2.5GHz, 4GB RAM, 32GB SSD, Chrome OS (Renewed)">Leno-vo 300e Chromebook 2nd Gen Touchscreen Laptop, 11.6in 2 in 1 Laptop, AMD A4...</td>
+<td class="price">AED189.00</td>
+<td class="rating">⭐5</td>
+<td class="reviews">1</td>
+<td class="sales">5</td>
+<td class="date">2024-02-04</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">21</td>
+<td class="asin"><a href="https://amazon.ae/dp/B0GHF7FXFZ" target="_blank">B0GHF7FXFZ</a></td>
+<td class="brand">UDKED</td>
+<td class="config">10.1寸 N4000 8G 玫瑰金</td>
+<td class="title-cell" title="UDKED 10.1 inch Ultra-Thin Portable Mini Laptop, Celeron N4000 Processor (up to 2.8Ghz), 8GB RAM DDR4,Weight only About 0.79Kg,Built-in Webcam, WiFi, Easy to Carry、Rose Gold (128, GB)">UDKED 10.1 inch Ultra-Thin Portable Mini Laptop, Celeron N4000 Processor (up to ...</td>
+<td class="price">AED545.00</td>
+<td class="rating">⭐5</td>
+<td class="reviews">2</td>
+<td class="sales">5</td>
+<td class="date">1970-01-01</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">67</td>
+<td class="asin"><a href="https://amazon.ae/dp/B0GK58T3P7" target="_blank">B0GK58T3P7</a></td>
+<td class="brand">Generic</td>
+<td class="config">11.6寸 Pentium 8G 128G 银色</td>
+<td class="title-cell" title="Len.ovo 500w Gen 3 Student 2-in-1 Laptop, 11.6“ HD Touchscreen, Intel Pentium Silver N6000, 8GB RAM, 128GB SSD, Windows 11 Home (Renewed)">Len.ovo 500w Gen 3 Student 2-in-1 Laptop, 11.6“ HD Touchscreen, Intel Pentium Si...</td>
+<td class="price">AED430.20</td>
+<td class="rating">-</td>
+<td class="reviews">0</td>
+<td class="sales">5</td>
+<td class="date">1970-01-01</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="country-section" id="section-SA">
+<div id="SA-traditional" style="display:block">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">11</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0CMCQ5GB3" target="_blank">B0CMCQ5GB3</a></td>
+<td class="brand">Generic</td>
+<td class="config">14.1寸 N3710 8G 256G 蓝色</td>
+<td class="title-cell" title="14.1“ FHD Laptop Computer, N3710 Processor, 8GB DDR3 RAM, 256 GB SSD, Webcam, 5G Wi-Fi, USB 3.0, Bluetooth 4.2,Windows 11, Ipuzzle Mousepad,Arabic keyboard (256 GB)">14.1“ FHD Laptop Computer, N3710 Processor, 8GB DDR3 RAM, 256 GB SSD, Webcam, 5G...</td>
+<td class="price">SAR940.89</td>
+<td class="rating">⭐3.1</td>
+<td class="reviews">25</td>
+<td class="sales">21</td>
+<td class="date">2023-07-26</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">25</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0GS533BBL" target="_blank">B0GS533BBL</a></td>
+<td class="brand">KAIGERR</td>
+<td class="config">16寸 Ryzen 3 4300U 16G 512G</td>
+<td class="title-cell" title="KAIGERR 16“ Laptop Ryzen 3 4300U up to 3,7 GHz (Beat N95/N150/3500U/3200U) 16GB RAM 512GB SSD Expansión 2TB Laptop Computer, Windοws 11 Laptop, 1920P FHD Display, WiFi 6, USB3.2, Type_C">KAIGERR 16“ Laptop Ryzen 3 4300U up to 3,7 GHz (Beat N95/N150/3500U/3200U) 16GB ...</td>
+<td class="price">SAR1,599.99</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">68</td>
+<td class="sales">30</td>
+<td class="date">1970-01-01</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">41</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0G6KKV813" target="_blank">B0G6KKV813</a></td>
+<td class="brand">KAIGERR</td>
+<td class="config">16寸 Ryzen 7 24G 512G</td>
+<td class="title-cell" title="KAIGERR 16Inch Gaming Laptop, AMD Ryzen 7 H255 (8C/16T, Beat R9 6900HX,up to 4.9GHz) 24GB DDR5 RAM 512GB SSD Computer with Radeon 780M,Type-C, WiFi-6, 50.82Wh Battery,Backlit Keyboard for Business">KAIGERR 16Inch Gaming Laptop, AMD Ryzen 7 H255 (8C/16T, Beat R9 6900HX,up to 4.9...</td>
+<td class="price">SAR2,699.99</td>
+<td class="rating">⭐4.8</td>
+<td class="reviews">8</td>
+<td class="sales">30</td>
+<td class="date">2025-02-12</td>
+<td class="seller">🇨🇳 中国</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">64</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0FZ9THFGK" target="_blank">B0FZ9THFGK</a></td>
+<td class="brand">GEEKOM</td>
+<td class="config">14寸 Ultra 9 32G 2TB</td>
+<td class="title-cell" title="GEEKOM GeekBook X14 Pro Laptop, 2.2lbs Ultra Thin 14“ 2.8K OLED Laptop Computer, Ultra 9 185H, 32GB LPDDR5x 7500MHz RAM 2TB SSD, Up to 16 Hour, 2X USB4, Fingerprint, Hub, Copilot, Windows 11 Pro">GEEKOM GeekBook X14 Pro Laptop, 2.2lbs Ultra Thin 14“ 2.8K OLED Laptop Computer,...</td>
+<td class="price">SAR5,393.58</td>
+<td class="rating">⭐4.4</td>
+<td class="reviews">36</td>
+<td class="sales">16</td>
+<td class="date">1970-01-01</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>5</td>
+<td class="rank">68</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0FZV7STQ6" target="_blank">B0FZV7STQ6</a></td>
+<td class="brand">AVENKA</td>
+<td class="config">15.6寸 i5 16G 1TB</td>
+<td class="title-cell" title="Gaming Laptop i5, 15.6 inch Laptop(Up to 3.20 GHz), Business Notebook Computer for 16GB RAM 1TB SSD, Full HD 1920X1080 Display Backlit Keyboard 180 Angle Opening,WIFI 5 BT4.2 MINI HDMI,gaming laptops">Gaming Laptop i5, 15.6 inch Laptop(Up to 3.20 GHz), Business Notebook Computer f...</td>
+<td class="price">SAR1,561.94</td>
+<td class="rating">⭐3.8</td>
+<td class="reviews">13</td>
+<td class="sales">13</td>
+<td class="date">2025-11-17</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>6</td>
+<td class="rank">93</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0GVRCGTMT" target="_blank">B0GVRCGTMT</a></td>
+<td class="brand">MALLRACE</td>
+<td class="config">18.5寸 Ryzen 4300U 16G 512G</td>
+<td class="title-cell" title="MALLRACE Laptop,18.5 Inch Laptops Computer with 8000 mAh Battery,AMD Ryzen 4300U (up to 3.7GHz),16GB DDR4 RAM 512GB SSD,WiFi,Dual Type-C,2026 Windows 11 Laptops for Business Office Student">MALLRACE Laptop,18.5 Inch Laptops Computer with 8000 mAh Battery,AMD Ryzen 4300U...</td>
+<td class="price">SAR2,333.92</td>
+<td class="rating">⭐4.8</td>
+<td class="reviews">6</td>
+<td class="sales">8</td>
+<td class="date">1970-01-01</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>7</td>
+<td class="rank">100</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0G3PVV45D" target="_blank">B0G3PVV45D</a></td>
+<td class="brand">Coolby</td>
+<td class="config">15.6寸 6500Y 16G 512G</td>
+<td class="title-cell" title="Coolby Laptop Computer, 15.6 inch Laptop with 1080P FHD IPS Display, 16GB RAM/512GB SSD, 6500Y Processor Notebook PC, Support 2.4G/5G Hz WiFi, BT">Coolby Laptop Computer, 15.6 inch Laptop with 1080P FHD IPS Display, 16GB RAM/51...</td>
+<td class="price">SAR1,223.94</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">7</td>
+<td class="sales">7</td>
+<td class="date">1970-01-01</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>8</td>
+<td class="rank">124</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0FM79JJ7C" target="_blank">B0FM79JJ7C</a></td>
+<td class="brand">RIANIFEL</td>
+<td class="config">15.6寸 6500Y 16G 256G</td>
+<td class="title-cell" title="Laptop Computer Win 11, 15.6 inch 1920 x1080 FHD IPS Display, 16GB RAM / 256GB SSD Notebook PC with Intel 6500Y, Support 2.4G/5G Hz WiFi, BT5.0">Laptop Computer Win 11, 15.6 inch 1920 x1080 FHD IPS Display, 16GB RAM / 256GB S...</td>
+<td class="price">SAR1,149.71</td>
+<td class="rating">⭐4.5</td>
+<td class="reviews">13</td>
+<td class="sales">5</td>
+<td class="date">1970-01-01</td>
+<td class="seller">N/A</td>
+</tr>
+</tbody></table>
+</div>
+<div id="SA-2in1" style="display:none">
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>小类排名</th>
+<th>ASIN</th>
+<th>品牌</th>
+<th>配置</th>
+<th>产品名称</th>
+<th>价格</th>
+<th>星级</th>
+<th>评论数</th>
+<th>月销量</th>
+<th>上架日期</th>
+<th>卖家来源</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>1</td>
+<td class="rank">39</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0D4DJ61S8" target="_blank">B0D4DJ61S8</a></td>
+<td class="brand">FUNYET</td>
+<td class="config">14寸 N100 16G 1TB</td>
+<td class="title-cell" title="FUNYET 2 in 1 Laptop Touchscreen, 14 Inch Tablet Laptop Computer, Intel 12th Gen N100 Processor, 16GB DDR5 RAM, 1TB SSD, 1920 x 1200, Wi-Fi 6, BT5.2, Backlit Keyboard, Windows 11 Pro">FUNYET 2 in 1 Laptop Touchscreen, 14 Inch Tablet Laptop Computer, Intel 12th Gen...</td>
+<td class="price">SAR3,302.32</td>
+<td class="rating">⭐3.9</td>
+<td class="reviews">107</td>
+<td class="sales">5</td>
+<td class="date">2024-05-30</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>2</td>
+<td class="rank">55</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0DSJGPPQT" target="_blank">B0DSJGPPQT</a></td>
+<td class="brand">EYY</td>
+<td class="config">10.1寸 8100Y 12G 256G 灰色</td>
+<td class="title-cell" title="EYY 10.1“ 2 in 1 Tablet/Laptop Computer, 12GB RAM+256GB SSD, Win 11 Touchscreen Laptops with Stylus and Keyboard, Intel M3-8100Y Processor(up to 3.40GHz), WiFi 5, BT 5, HDMI, Dual Camera, Gray">EYY 10.1“ 2 in 1 Tablet/Laptop Computer, 12GB RAM+256GB SSD, Win 11 Touchscreen ...</td>
+<td class="price">SAR1,515.71</td>
+<td class="rating">⭐3.6</td>
+<td class="reviews">48</td>
+<td class="sales">5</td>
+<td class="date">2025-02-21</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+<tr>
+<td>3</td>
+<td class="rank">60</td>
+<td class="asin"><a href="https://amazon.sa/dp/B0DFQBSQBL" target="_blank">B0DFQBSQBL</a></td>
+<td class="brand">KOOFORWAY</td>
+<td class="config">8寸 N150 12G 512G</td>
+<td class="title-cell" title="KOOFORWAY 8 Inch 2-in-1 Mini Laptop Tablet PC,N150 (Up to 3.6GHz), 12GB LPDDR5 RAM, 512GB SSD, Win 11 Pro 1280×800 Touchscreen, WiFi 6 BT5.2, USB-C, HDMI, Stylus Support Portable Notebook PC">KOOFORWAY 8 Inch 2-in-1 Mini Laptop Tablet PC,N150 (Up to 3.6GHz), 12GB LPDDR5 R...</td>
+<td class="price">SAR2,046.36</td>
+<td class="rating">⭐4.1</td>
+<td class="reviews">269</td>
+<td class="sales">5</td>
+<td class="date">2024-09-17</td>
+<td class="seller">N/A</td>
+</tr>
+<tr>
+<td>4</td>
+<td class="rank">168</td>
+<td class="asin"><a href="https://amazon.sa/dp/B09S1F2VZL" target="_blank">B09S1F2VZL</a></td>
+<td class="brand">Gateway</td>
+<td class="config">11.6寸 N4020 4G 64G 蓝色</td>
+<td class="title-cell" title="Gateway Newest Touchscreen 11.6 HD 2-in-1 Convertible Laptop in Blue Intel N4020 4GB RAM 64GB SSD Mini-HDMI Webcam Windows 10 S">Gateway Newest Touchscreen 11.6 HD 2-in-1 Convertible Laptop in Blue Intel N4020...</td>
+<td class="price">SAR2,242.17</td>
+<td class="rating">⭐4.6</td>
+<td class="reviews">3</td>
+<td class="sales">5</td>
+<td class="date">2022-02-21</td>
+<td class="seller">🏳️ 未知</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+
+<script>
+let currentCountry = 'US';
+let currentCat = 'traditional';
+
+function switchCountry(cc) {
+    currentCountry = cc;
+    document.querySelectorAll('.country-btn').forEach(b => b.classList.remove('active'));
+    event.target.closest('.country-btn').classList.add('active');
+    document.querySelectorAll('.country-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-' + cc).classList.add('active');
+    updateView();
+}
+
+function switchCat(cat) {
+    currentCat = cat;
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    updateView();
+}
+
+function updateView() {
+    document.querySelectorAll('.country-section').forEach(s => {
+        const cc = s.id.replace('section-', '');
+        s.querySelectorAll('[id^="' + cc + '-"]').forEach(d => d.style.display = 'none');
+        const target = document.getElementById(cc + '-' + currentCat);
+        if (target) target.style.display = 'block';
+    });
+}
+</script>
+</body>
+</html>
