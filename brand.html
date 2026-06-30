@@ -1,0 +1,3085 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品牌来源分布 - 2026-06-30 12:07</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+    background: #1b2838;
+    color: #c7d5e0;
+    min-height: 100vh;
+}
+.header {
+    background: linear-gradient(135deg, #171a21 0%, #1b2838 100%);
+    padding: 20px 30px;
+    border-bottom: 2px solid #2a475e;
+}
+.header h1 {
+    color: #66c0f4;
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+.header .subtitle {
+    color: #8f98a0;
+    font-size: 14px;
+}
+.stats-bar {
+    display: flex;
+    gap: 20px;
+    padding: 15px 30px;
+    background: #171a21;
+    border-bottom: 1px solid #2a475e;
+    flex-wrap: wrap;
+}
+.stat-item {
+    background: #2a475e;
+    border-radius: 6px;
+    padding: 10px 18px;
+    min-width: 120px;
+}
+.stat-item .label {
+    font-size: 11px;
+    color: #8f98a0;
+    text-transform: uppercase;
+}
+.stat-item .value {
+    font-size: 22px;
+    font-weight: bold;
+    color: #66c0f4;
+    margin-top: 2px;
+}
+.stat-item .value.green { color: #a4d007; }
+.stat-item .value.red { color: #e74c3c; }
+.stat-item .value.orange { color: #e67e22; }
+.stat-item .value.purple { color: #9b59b6; }
+
+/* 来源国总览 */
+.origin-overview {
+    padding: 20px 30px;
+    background: #171a21;
+    border-bottom: 1px solid #2a475e;
+}
+.origin-overview h2 {
+    color: #66c0f4;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+.origin-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.origin-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.origin-bar-label {
+    width: 140px;
+    font-size: 13px;
+    color: #c7d5e0;
+    text-align: right;
+    flex-shrink: 0;
+}
+.origin-bar-track {
+    flex: 1;
+    height: 28px;
+    background: #2a475e;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+.origin-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    min-width: 40px;
+    transition: width 0.5s ease;
+}
+.origin-bar-count {
+    width: 60px;
+    text-align: right;
+    font-size: 13px;
+    color: #8f98a0;
+    flex-shrink: 0;
+}
+
+/* 堆叠条 */
+.stacked-bar-container {
+    padding: 20px 30px;
+    background: #171a21;
+    border-bottom: 1px solid #2a475e;
+}
+.stacked-bar-container h2 {
+    color: #66c0f4;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+.stacked-bar {
+    display: flex;
+    height: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+.stacked-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    color: #fff;
+    min-width: 2px;
+    transition: width 0.5s ease;
+    position: relative;
+    cursor: pointer;
+}
+.stacked-segment:hover {
+    opacity: 0.85;
+}
+.stacked-legend {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    font-size: 12px;
+}
+.stacked-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.stacked-legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+/* 国家导航 */
+.country-nav {
+    display: flex;
+    gap: 8px;
+    padding: 15px 30px;
+    background: #171a21;
+    border-bottom: 1px solid #2a475e;
+    flex-wrap: wrap;
+}
+.country-btn {
+    background: #2a475e;
+    border: 1px solid #3d6b8e;
+    border-radius: 6px;
+    padding: 8px 16px;
+    color: #c7d5e0;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.country-btn:hover {
+    background: #3d6b8e;
+    color: #fff;
+}
+.country-btn.active {
+    background: #66c0f4;
+    color: #1b2838;
+    border-color: #66c0f4;
+    font-weight: bold;
+}
+
+/* 品牌表格 */
+.brand-section {
+    padding: 20px 30px;
+}
+.brand-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.brand-table th {
+    background: #171a21;
+    color: #66c0f4;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid #2a475e;
+    font-size: 12px;
+    text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.brand-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #2a475e33;
+}
+.brand-table tr:hover td {
+    background: #2a475e44;
+}
+.brand-name {
+    font-weight: bold;
+    color: #e0e0e0;
+}
+.brand-origin-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+}
+.brand-count {
+    font-size: 18px;
+    font-weight: bold;
+    color: #66c0f4;
+}
+.brand-pct {
+    color: #8f98a0;
+    font-size: 12px;
+}
+.brand-bar {
+    height: 6px;
+    background: #2a475e;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.brand-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+}
+.country-panel {
+    display: none;
+}
+.country-panel.active {
+    display: block;
+}
+.no-data {
+    text-align: center;
+    padding: 40px;
+    color: #8f98a0;
+    font-size: 14px;
+}
+
+/* 全球排名区 */
+.global-section {
+    padding: 20px 30px;
+}
+.global-section h2 {
+    color: #66c0f4;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .origin-bar-label { width: 100px; font-size: 11px; }
+    .brand-section { padding: 10px 15px; }
+    .stats-bar, .country-nav { padding: 10px 15px; }
+    .header { padding: 15px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🏷️ 品牌来源分布</h1>
+    <div class="subtitle">亚马逊10国笔记本/平板 Top100 品牌占比分析 · 更新于 2026-06-30 12:07</div>
+</div>
+
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="label">覆盖国家</div>
+        <div class="value">10</div>
+    </div>
+    <div class="stat-item">
+        <div class="label">统计产品数</div>
+        <div class="value green">2000</div>
+    </div>
+    <div class="stat-item">
+        <div class="label">品牌总数</div>
+        <div class="value purple">171</div>
+    </div>
+    <div class="stat-item">
+        <div class="label">白牌占比</div>
+        <div class="value orange">0.4%</div>
+    </div>
+</div>
+
+<!-- 来源国总览 - 堆叠条 -->
+<div class="stacked-bar-container">
+    <h2>📊 品牌来源国分布（全球合计）</h2>
+    <div class="stacked-bar">
+        <div class="stacked-segment" style="width:27.400000000000002%;background:#e74c3c" title="🇨🇳 中国: 548 (27.4%)">
+            27%
+        </div>
+        <div class="stacked-segment" style="width:35.199999999999996%;background:#3498db" title="🇺🇸 美国: 704 (35.2%)">
+            35%
+        </div>
+        <div class="stacked-segment" style="width:16.8%;background:#2ecc71" title="🇹🇼 台湾: 336 (16.8%)">
+            17%
+        </div>
+        <div class="stacked-segment" style="width:3.8%;background:#9b59b6" title="🇰🇷 韩国: 76 (3.8%)">
+            4%
+        </div>
+        <div class="stacked-segment" style="width:2.45%;background:#e67e22" title="🇯🇵 日本: 49 (2.5%)">
+            
+        </div>
+        <div class="stacked-segment" style="width:0.35000000000000003%;background:#95a5a6" title="⬜ 白牌: 7 (0.4%)">
+            
+        </div>
+        <div class="stacked-segment" style="width:14.000000000000002%;background:#7f8c8d" title="🏳️ 其他: 280 (14.0%)">
+            14%
+        </div>
+    </div>
+    <div class="stacked-legend">
+        <div class="stacked-legend-item"><div class="stacked-legend-dot" style="background:#e74c3c"></div>🇨🇳 中国: 548 (27.4%)</div><div class="stacked-legend-item"><div class="stacked-legend-dot" style="background:#3498db"></div>🇺🇸 美国: 704 (35.2%)</div><div class="stacked-legend-item"><div class="stacked-legend-dot" style="background:#2ecc71"></div>🇹🇼 台湾: 336 (16.8%)</div><div class="stacked-legend-item"><div class="stacked-legend-dot" style="background:#9b59b6"></div>🇰🇷 韩国: 76 (3.8%)</div><div class="stacked-legend-item"><div class="stacked-legend-dot" style="background:#e67e22"></div>🇯🇵 日本: 49 (2.5%)</div><div class="stacked-legend-item"><div class="stacked-legend-dot" style="background:#95a5a6"></div>⬜ 白牌: 7 (0.4%)</div><div class="stacked-legend-item"><div class="stacked-legend-dot" style="background:#7f8c8d"></div>🏳️ 其他: 280 (14.0%)</div>
+    </div>
+</div>
+
+<!-- 各国来源国分布 -->
+<div class="origin-overview">
+    <h2>🌍 各国品牌来源国分布</h2>
+    <div class="origin-bars">
+        <div class="origin-bar-row">
+            <div class="origin-bar-label">🇺🇸 美国</div>
+            <div class="origin-bar-track">
+                <div class="origin-bar-fill" style="width:51.0%;background:#3498db">🇺🇸 美国 51%</div>
+            </div>
+            <div class="origin-bar-count">200品</div>
+        </div>
+        <div class="origin-bar-row">
+            <div class="origin-bar-label">🇬🇧 英国</div>
+            <div class="origin-bar-track">
+                <div class="origin-bar-fill" style="width:33.5%;background:#3498db">🇺🇸 美国 34%</div>
+            </div>
+            <div class="origin-bar-count">200品</div>
+        </div>
+        <div class="origin-bar-row">
+            <div class="origin-bar-label">🇩🇪 德国</div>
+            <div class="origin-bar-track">
+                <div class="origin-bar-fill" style="width:42.5%;background:#e74c3c">🇨🇳 中国 42%</div>
+            </div>
+            <div class="origin-bar-count">200品</div>
+        </div>
+        <div class="origin-bar-row">
+            <div class="origin-bar-label">🇨🇦 加拿大</div>
+            <div class="origin-bar-track">
+                <div class="origin-bar-fill" style="width:33.5%;background:#e74c3c">🇨🇳 中国 34%</div>
+            </div>
+            <div class="origin-bar-count">200品</div>
+        </div>
+        <div class="origin-bar-row">
+            <div class="origin-bar-label">🇯🇵 日本</div>
+            <div class="origin-bar-track">
+                <div class="origin-bar-fill" style="width:54.0%;background:#7f8c8d">🏳️ 其他 54%</div>
+            </div>
+            <div class="origin-bar-count">200品</div>
+        </div>
+        <div class="origin-bar-row">
+            <div class="origin-bar-label">🇫🇷 法国</div>
+            <div class="origin-bar-track">
+                <div class="origin-bar-fill" style="width:30.5%;background:#e74c3c">🇨🇳 中国 30%</div>
+            </div>
+            <div class="origin-bar-count">200品</div>
+        </div>
+        <div class="origin-bar-row">
+            <div class="origin-bar-label">🇮🇹 意大利</div>
+            <div class="origin-bar-track">
+                <div class="origin-bar-fill" style="width:33.5%;background:#3498db">🇺🇸 美国 34%</div>
+            </div>
+            <div class="origin-bar-count">200品</div>
+        </div>
+        <div class="origin-bar-row">
+            <div class="origin-bar-label">🇪🇸 西班牙</div>
+            <div class="origin-bar-track">
+                <div class="origin-bar-fill" style="width:35.5%;background:#3498db">🇺🇸 美国 36%</div>
+            </div>
+            <div class="origin-bar-count">200品</div>
+        </div>
+        <div class="origin-bar-row">
+            <div class="origin-bar-label">🇦🇪 阿联酋</div>
+            <div class="origin-bar-track">
+                <div class="origin-bar-fill" style="width:53.0%;background:#3498db">🇺🇸 美国 53%</div>
+            </div>
+            <div class="origin-bar-count">200品</div>
+        </div>
+        <div class="origin-bar-row">
+            <div class="origin-bar-label">🇸🇦 沙特</div>
+            <div class="origin-bar-track">
+                <div class="origin-bar-fill" style="width:45.0%;background:#3498db">🇺🇸 美国 45%</div>
+            </div>
+            <div class="origin-bar-count">200品</div>
+        </div>
+    </div>
+</div>
+
+<!-- 国家导航 -->
+<div class="country-nav">
+    <button class="country-btn active" onclick="switchCountry('global')">🌐 全球Top30</button>
+    <button class="country-btn" onclick="switchCountry('US')">🇺🇸 美国</button>
+    <button class="country-btn" onclick="switchCountry('GB')">🇬🇧 英国</button>
+    <button class="country-btn" onclick="switchCountry('DE')">🇩🇪 德国</button>
+    <button class="country-btn" onclick="switchCountry('CA')">🇨🇦 加拿大</button>
+    <button class="country-btn" onclick="switchCountry('JP')">🇯🇵 日本</button>
+    <button class="country-btn" onclick="switchCountry('FR')">🇫🇷 法国</button>
+    <button class="country-btn" onclick="switchCountry('IT')">🇮🇹 意大利</button>
+    <button class="country-btn" onclick="switchCountry('ES')">🇪🇸 西班牙</button>
+    <button class="country-btn" onclick="switchCountry('AE')">🇦🇪 阿联酋</button>
+    <button class="country-btn" onclick="switchCountry('SA')">🇸🇦 沙特</button>
+</div>
+
+<!-- 全球品牌排名 -->
+<div class="country-panel active" id="panel-global">
+    <div class="global-section">
+        <h2>🏆 全球品牌 Top 30（10国前100合计）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">463</td>
+                    <td class="brand-pct">23.2%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">336</td>
+                    <td class="brand-pct">16.8%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:72.57019438444925%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">ASUS</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">188</td>
+                    <td class="brand-pct">9.4%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:40.60475161987041%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">179</td>
+                    <td class="brand-pct">8.9%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:38.66090712742981%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">Acer</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">100</td>
+                    <td class="brand-pct">5.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:21.598272138228943%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">Apple</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">89</td>
+                    <td class="brand-pct">4.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:19.222462203023756%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">Microsoft</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">80</td>
+                    <td class="brand-pct">4.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:17.278617710583152%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">Samsung</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">62</td>
+                    <td class="brand-pct">3.1%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:13.390928725701945%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">Asus</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">27</td>
+                    <td class="brand-pct">1.4%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.831533477321814%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">マイクロソフト</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">24</td>
+                    <td class="brand-pct">1.2%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.183585313174946%;background:#e67e22"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">jumper</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">14</td>
+                    <td class="brand-pct">0.7%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.023758099352052%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">MSI</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">14</td>
+                    <td class="brand-pct">0.7%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.023758099352052%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">GPD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">12</td>
+                    <td class="brand-pct">0.6%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.591792656587473%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">14</td>
+                    <td class="brand-name">ACEMAGIC</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">12</td>
+                    <td class="brand-pct">0.6%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.591792656587473%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">15</td>
+                    <td class="brand-name">LG</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">11</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.375809935205184%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">16</td>
+                    <td class="brand-name">ist computers</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">9</td>
+                    <td class="brand-pct">0.4%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9438444924406046%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">17</td>
+                    <td class="brand-name">Tivique</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">9</td>
+                    <td class="brand-pct">0.4%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9438444924406046%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">18</td>
+                    <td class="brand-name">KOOFORWAY</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">8</td>
+                    <td class="brand-pct">0.4%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.7278617710583155%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">19</td>
+                    <td class="brand-name">CHUWI</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">8</td>
+                    <td class="brand-pct">0.4%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.7278617710583155%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">20</td>
+                    <td class="brand-name">パナソニック(Panasonic)</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">8</td>
+                    <td class="brand-pct">0.4%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.7278617710583155%;background:#e67e22"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">21</td>
+                    <td class="brand-name">白牌(无品牌)</td>
+                    <td><span class="brand-origin-tag" style="background:#95a5a622;color:#95a5a6;border:1px solid #95a5a644">⬜ 白牌</span></td>
+                    <td class="brand-count">7</td>
+                    <td class="brand-pct">0.4%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.511879049676026%;background:#95a5a6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">22</td>
+                    <td class="brand-name">LONGEVINCE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">7</td>
+                    <td class="brand-pct">0.4%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.511879049676026%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">23</td>
+                    <td class="brand-name">Apple(アップル)</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">7</td>
+                    <td class="brand-pct">0.4%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.511879049676026%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">24</td>
+                    <td class="brand-name">msi</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">0.3%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.2958963282937366%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">25</td>
+                    <td class="brand-name">Morostron</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">0.3%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.2958963282937366%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">26</td>
+                    <td class="brand-name">BNCF</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">0.3%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.2958963282937366%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">27</td>
+                    <td class="brand-name">Alienware</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">0.3%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.2958963282937366%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">28</td>
+                    <td class="brand-name">BMAX</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">0.3%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.2958963282937366%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">29</td>
+                    <td class="brand-name">NOTODD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">0.3%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.2958963282937366%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">30</td>
+                    <td class="brand-name">ＳＯＵＳＩＡ</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">0.3%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.2958963282937366%;background:#7f8c8d"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="country-panel" id="panel-US">
+    <div class="global-section">
+        <h2>🇺🇸 美国 · 品牌分布 Top 30（前100名）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">45</td>
+                    <td class="brand-pct">22.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">39</td>
+                    <td class="brand-pct">19.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:86.66666666666667%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">28</td>
+                    <td class="brand-pct">14.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:62.22222222222222%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">Apple</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">17</td>
+                    <td class="brand-pct">8.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:37.77777777777778%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">ASUS</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">17</td>
+                    <td class="brand-pct">8.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:37.77777777777778%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">Microsoft</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">12</td>
+                    <td class="brand-pct">6.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:26.666666666666668%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">Acer</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">8</td>
+                    <td class="brand-pct">4.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:17.77777777777778%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">ist computers</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">3.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:13.333333333333334%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">Samsung</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:6.666666666666667%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">NIMO</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.444444444444445%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">jumper</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.444444444444445%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">ME2 MichaelElectronics2</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.444444444444445%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">Morostron</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.444444444444445%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">14</td>
+                    <td class="brand-name">KOOFORWAY</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.444444444444445%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">15</td>
+                    <td class="brand-name">CHUWI</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.444444444444445%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">16</td>
+                    <td class="brand-name">SAGAWHALE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">17</td>
+                    <td class="brand-name">NIAKUN</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">18</td>
+                    <td class="brand-name">MALLRACE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">19</td>
+                    <td class="brand-name">Auusda</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">20</td>
+                    <td class="brand-name">Phatom</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">21</td>
+                    <td class="brand-name">msi</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">22</td>
+                    <td class="brand-name">QAZIPO</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">23</td>
+                    <td class="brand-name">Tylvx</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">24</td>
+                    <td class="brand-name">SZTPSLS</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">25</td>
+                    <td class="brand-name">Tunhail</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">26</td>
+                    <td class="brand-name">KOOTIGERS</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">27</td>
+                    <td class="brand-name">BNCF</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">28</td>
+                    <td class="brand-name">Panasonic</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.2222222222222223%;background:#e67e22"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="country-panel" id="panel-GB">
+    <div class="global-section">
+        <h2>🇬🇧 英国 · 品牌分布 Top 30（前100名）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">38</td>
+                    <td class="brand-pct">19.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">ASUS</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">29</td>
+                    <td class="brand-pct">14.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:76.31578947368422%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">27</td>
+                    <td class="brand-pct">13.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:71.05263157894737%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">22</td>
+                    <td class="brand-pct">11.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:57.89473684210527%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">Acer</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">19</td>
+                    <td class="brand-pct">9.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:50.0%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">Samsung</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">16</td>
+                    <td class="brand-pct">8.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:42.10526315789473%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">Apple</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">13</td>
+                    <td class="brand-pct">6.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:34.21052631578947%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">Microsoft</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:10.526315789473683%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">jumper</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:7.894736842105263%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">Tivique</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:7.894736842105263%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">DREAMFYRE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:7.894736842105263%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">Morostron</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:7.894736842105263%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">Lapbook</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.263157894736842%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">14</td>
+                    <td class="brand-name">Toshiba</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.263157894736842%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">15</td>
+                    <td class="brand-name">白牌(无品牌)</td>
+                    <td><span class="brand-origin-tag" style="background:#95a5a622;color:#95a5a6;border:1px solid #95a5a644">⬜ 白牌</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.263157894736842%;background:#95a5a6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">16</td>
+                    <td class="brand-name">Bigmachine</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.263157894736842%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">17</td>
+                    <td class="brand-name">UDKED</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.263157894736842%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">18</td>
+                    <td class="brand-name">Alienware</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">19</td>
+                    <td class="brand-name">Auusda</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">20</td>
+                    <td class="brand-name">NAIKLULU</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">21</td>
+                    <td class="brand-name">LG</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">22</td>
+                    <td class="brand-name">dahongyun</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">23</td>
+                    <td class="brand-name">KOOFORWAY</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">24</td>
+                    <td class="brand-name">Tunhail</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">25</td>
+                    <td class="brand-name">LONGEVINCE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">26</td>
+                    <td class="brand-name">Amita</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">27</td>
+                    <td class="brand-name">AEEVD</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="country-panel" id="panel-DE">
+    <div class="global-section">
+        <h2>🇩🇪 德国 · 品牌分布 Top 30（前100名）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">76</td>
+                    <td class="brand-pct">38.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">27</td>
+                    <td class="brand-pct">13.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:35.526315789473685%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">12</td>
+                    <td class="brand-pct">6.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:15.789473684210526%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">ASUS</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">11</td>
+                    <td class="brand-pct">5.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:14.473684210526317%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">Apple</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">9</td>
+                    <td class="brand-pct">4.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:11.842105263157894%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">Acer</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">9</td>
+                    <td class="brand-pct">4.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:11.842105263157894%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">Samsung</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">8</td>
+                    <td class="brand-pct">4.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:10.526315789473683%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">Microsoft</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">7</td>
+                    <td class="brand-pct">3.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:9.210526315789473%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">MSI</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">5</td>
+                    <td class="brand-pct">2.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:6.578947368421052%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">LG</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.263157894736842%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">GPD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.9473684210526314%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">JHHBHV</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">jumper</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">14</td>
+                    <td class="brand-name">GEEKOM</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">15</td>
+                    <td class="brand-name">AWOW</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">16</td>
+                    <td class="brand-name">DELL</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.631578947368421%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">17</td>
+                    <td class="brand-name">Difinity</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">18</td>
+                    <td class="brand-name">Alienware</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">19</td>
+                    <td class="brand-name">Molegar</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">20</td>
+                    <td class="brand-name">Morostron</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">21</td>
+                    <td class="brand-name">Fujitsu</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#e67e22"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">22</td>
+                    <td class="brand-name">Auusda</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">23</td>
+                    <td class="brand-name">Tivique</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">24</td>
+                    <td class="brand-name">GMR</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">25</td>
+                    <td class="brand-name">BEYNIVAN</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">26</td>
+                    <td class="brand-name">KOOFORWAY</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">27</td>
+                    <td class="brand-name">KOOSMILE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">28</td>
+                    <td class="brand-name">SZTPS</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">29</td>
+                    <td class="brand-name">BNCF</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">30</td>
+                    <td class="brand-name">KOOTIGERS</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.3157894736842104%;background:#e74c3c"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="country-panel" id="panel-CA">
+    <div class="global-section">
+        <h2>🇨🇦 加拿大 · 品牌分布 Top 30（前100名）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">48</td>
+                    <td class="brand-pct">24.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">34</td>
+                    <td class="brand-pct">17.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:70.83333333333334%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">Asus</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">27</td>
+                    <td class="brand-pct">13.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:56.25%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">17</td>
+                    <td class="brand-pct">8.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:35.41666666666667%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">Acer</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">14</td>
+                    <td class="brand-pct">7.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:29.166666666666668%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">Apple</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">10</td>
+                    <td class="brand-pct">5.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:20.833333333333336%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">ACEMAGIC</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">8</td>
+                    <td class="brand-pct">4.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:16.666666666666664%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">jumper</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">3.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">MELIUNA</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:8.333333333333332%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">Microsoft</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:8.333333333333332%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">AKCHART</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:6.25%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">estock</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:6.25%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">OTVOC</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.166666666666666%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">14</td>
+                    <td class="brand-name">NOTODD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.166666666666666%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">15</td>
+                    <td class="brand-name">QAZIPO</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.166666666666666%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">16</td>
+                    <td class="brand-name">Samsung</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.166666666666666%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">17</td>
+                    <td class="brand-name">AocBook</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.166666666666666%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">18</td>
+                    <td class="brand-name">Phatom</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">19</td>
+                    <td class="brand-name">bvate</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">20</td>
+                    <td class="brand-name">Exilapsire</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">21</td>
+                    <td class="brand-name">ZAQTG</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">22</td>
+                    <td class="brand-name">SAINTDISE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">23</td>
+                    <td class="brand-name">Alienware</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">24</td>
+                    <td class="brand-name">Svikou</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">25</td>
+                    <td class="brand-name">LG</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">26</td>
+                    <td class="brand-name">KOOTIGERS</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">27</td>
+                    <td class="brand-name">KOOSMILE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">28</td>
+                    <td class="brand-name">RUGLINE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">29</td>
+                    <td class="brand-name">Panasonic</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#e67e22"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="country-panel" id="panel-JP">
+    <div class="global-section">
+        <h2>🇯🇵 日本 · 品牌分布 Top 30（前100名）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">マイクロソフト</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">24</td>
+                    <td class="brand-pct">12.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#e67e22"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">ASUS</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">15</td>
+                    <td class="brand-pct">7.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:62.5%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">パナソニック(Panasonic)</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">8</td>
+                    <td class="brand-pct">4.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:33.33333333333333%;background:#e67e22"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">Apple(アップル)</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">7</td>
+                    <td class="brand-pct">3.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:29.166666666666668%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">7</td>
+                    <td class="brand-pct">3.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:29.166666666666668%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">ＳＯＵＳＩＡ</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">3.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:25.0%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">デジハモ</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">3.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:25.0%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">3.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:25.0%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">WVX</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">3.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:25.0%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">ToueDigital</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">3.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:25.0%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">5</td>
+                    <td class="brand-pct">2.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:20.833333333333336%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">§Ｇ∞ＧＭＪ</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:16.666666666666664%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">FYS</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:16.666666666666664%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">14</td>
+                    <td class="brand-name">WORKS PC</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:16.666666666666664%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">15</td>
+                    <td class="brand-name">NEC</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:16.666666666666664%;background:#e67e22"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">16</td>
+                    <td class="brand-name">EYY</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">17</td>
+                    <td class="brand-name">LeLib</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">18</td>
+                    <td class="brand-name">Wrw</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">19</td>
+                    <td class="brand-name">AIAcross</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">20</td>
+                    <td class="brand-name">wajun</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">21</td>
+                    <td class="brand-name">東芝(TOSHIBA)</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">22</td>
+                    <td class="brand-name">富士通</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#e67e22"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">23</td>
+                    <td class="brand-name">DLGPC</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">24</td>
+                    <td class="brand-name">YMER</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">25</td>
+                    <td class="brand-name">TENKU</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:12.5%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">26</td>
+                    <td class="brand-name">FMV</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:8.333333333333332%;background:#e67e22"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">27</td>
+                    <td class="brand-name">Monster Storage</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:8.333333333333332%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">28</td>
+                    <td class="brand-name">LAVIE</td>
+                    <td><span class="brand-origin-tag" style="background:#e67e2222;color:#e67e22;border:1px solid #e67e2244">🇯🇵 日本</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:8.333333333333332%;background:#e67e22"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">29</td>
+                    <td class="brand-name">VETESA</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:8.333333333333332%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">30</td>
+                    <td class="brand-name">reiware</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:8.333333333333332%;background:#7f8c8d"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="country-panel" id="panel-FR">
+    <div class="global-section">
+        <h2>🇫🇷 法国 · 品牌分布 Top 30（前100名）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">52</td>
+                    <td class="brand-pct">26.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">ASUS</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">29</td>
+                    <td class="brand-pct">14.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:55.769230769230774%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">21</td>
+                    <td class="brand-pct">10.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:40.38461538461539%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">15</td>
+                    <td class="brand-pct">7.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:28.846153846153843%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">Acer</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">14</td>
+                    <td class="brand-pct">7.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:26.923076923076923%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">Apple</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">11</td>
+                    <td class="brand-pct">5.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:21.153846153846153%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">Microsoft</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">11</td>
+                    <td class="brand-pct">5.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:21.153846153846153%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">Samsung</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">3.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:11.538461538461538%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">MSI</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:7.6923076923076925%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">PINSTONE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.769230769230769%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">LONGEVINCE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.769230769230769%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">GPD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.769230769230769%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">NOTODD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.8461538461538463%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">14</td>
+                    <td class="brand-name">AOC</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.8461538461538463%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">15</td>
+                    <td class="brand-name">Tunhail</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.8461538461538463%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">16</td>
+                    <td class="brand-name">Alienware</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">17</td>
+                    <td class="brand-name">Difinity</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">18</td>
+                    <td class="brand-name">LG</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">19</td>
+                    <td class="brand-name">JHHBHV</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">20</td>
+                    <td class="brand-name">Ruzava</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">21</td>
+                    <td class="brand-name">Energizer</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">22</td>
+                    <td class="brand-name">bvate</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">23</td>
+                    <td class="brand-name">Tivique</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">24</td>
+                    <td class="brand-name">KOOFORWAY</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">25</td>
+                    <td class="brand-name">Amita</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">26</td>
+                    <td class="brand-name">Toshiba</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">27</td>
+                    <td class="brand-name">BMAX</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">28</td>
+                    <td class="brand-name">Brhona</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">29</td>
+                    <td class="brand-name">ZOTAC</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">30</td>
+                    <td class="brand-name">Monovate</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.9230769230769231%;background:#7f8c8d"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="country-panel" id="panel-IT">
+    <div class="global-section">
+        <h2>🇮🇹 意大利 · 品牌分布 Top 30（前100名）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">48</td>
+                    <td class="brand-pct">24.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">36</td>
+                    <td class="brand-pct">18.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:75.0%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">ASUS</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">18</td>
+                    <td class="brand-pct">9.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:37.5%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">Samsung</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">15</td>
+                    <td class="brand-pct">7.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:31.25%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">12</td>
+                    <td class="brand-pct">6.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:25.0%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">Acer</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">12</td>
+                    <td class="brand-pct">6.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:25.0%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">Microsoft</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">10</td>
+                    <td class="brand-pct">5.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:20.833333333333336%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">Apple</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">8</td>
+                    <td class="brand-pct">4.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:16.666666666666664%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">msi</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">5</td>
+                    <td class="brand-pct">2.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:10.416666666666668%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">Tivique</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:6.25%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">LONGEVINCE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:6.25%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">GPD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:6.25%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">Amita</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.166666666666666%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">14</td>
+                    <td class="brand-name">BMAX</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:4.166666666666666%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">15</td>
+                    <td class="brand-name">CHIFUYOU</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">16</td>
+                    <td class="brand-name">Kayoote</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">17</td>
+                    <td class="brand-name">FUNYET</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">18</td>
+                    <td class="brand-name">NOTODD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">19</td>
+                    <td class="brand-name">MOGIKK</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">20</td>
+                    <td class="brand-name">Mielle Organics</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">21</td>
+                    <td class="brand-name">Alienware</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">22</td>
+                    <td class="brand-name">LG</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">23</td>
+                    <td class="brand-name">NAIKLULU</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">24</td>
+                    <td class="brand-name">BNCF</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">25</td>
+                    <td class="brand-name">ALLDOCUBE</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">26</td>
+                    <td class="brand-name">KOOFORWAY</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">27</td>
+                    <td class="brand-name">Crelander</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">28</td>
+                    <td class="brand-name">CHUWI</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">29</td>
+                    <td class="brand-name">RUGLINE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">30</td>
+                    <td class="brand-name">WSFSDAN</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:2.083333333333333%;background:#7f8c8d"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="country-panel" id="panel-ES">
+    <div class="global-section">
+        <h2>🇪🇸 西班牙 · 品牌分布 Top 30（前100名）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">53</td>
+                    <td class="brand-pct">26.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">31</td>
+                    <td class="brand-pct">15.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:58.490566037735846%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">ASUS</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">17</td>
+                    <td class="brand-pct">8.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:32.075471698113205%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">14</td>
+                    <td class="brand-pct">7.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:26.41509433962264%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">Microsoft</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">14</td>
+                    <td class="brand-pct">7.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:26.41509433962264%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">Apple</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">11</td>
+                    <td class="brand-pct">5.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:20.754716981132077%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">Acer</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">11</td>
+                    <td class="brand-pct">5.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:20.754716981132077%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">Samsung</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">5</td>
+                    <td class="brand-pct">2.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:9.433962264150944%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">MOGIKK</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">5</td>
+                    <td class="brand-pct">2.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:9.433962264150944%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">ACEMAGIC</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.660377358490567%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">bvate</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.7735849056603774%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">LG</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.7735849056603774%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">BMAX</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.7735849056603774%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">14</td>
+                    <td class="brand-name">BEYNIVAN</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.7735849056603774%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">15</td>
+                    <td class="brand-name">FUNYET</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.7735849056603774%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">16</td>
+                    <td class="brand-name">SUKOTOP</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.7735849056603774%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">17</td>
+                    <td class="brand-name">Ankermann-PC</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.7735849056603774%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">18</td>
+                    <td class="brand-name">GPD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.7735849056603774%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">19</td>
+                    <td class="brand-name">Ruzava</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">20</td>
+                    <td class="brand-name">Kayoote</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">21</td>
+                    <td class="brand-name">Alienware</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">22</td>
+                    <td class="brand-name">PINSTONE</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">23</td>
+                    <td class="brand-name">Tivique</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">24</td>
+                    <td class="brand-name">MSI</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">25</td>
+                    <td class="brand-name">MASNIESKI</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">26</td>
+                    <td class="brand-name">CHIFUYOU</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">27</td>
+                    <td class="brand-name">NOTODD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">28</td>
+                    <td class="brand-name">MINISFORUM</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">29</td>
+                    <td class="brand-name">NENCHIN</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">30</td>
+                    <td class="brand-name">PRIXTON</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8867924528301887%;background:#7f8c8d"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="country-panel" id="panel-AE">
+    <div class="global-section">
+        <h2>🇦🇪 阿联酋 · 品牌分布 Top 30（前100名）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">55</td>
+                    <td class="brand-pct">27.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">54</td>
+                    <td class="brand-pct">27.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:98.18181818181819%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">38</td>
+                    <td class="brand-pct">19.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:69.0909090909091%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">ASUS</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">19</td>
+                    <td class="brand-pct">9.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:34.54545454545455%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">Acer</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">9</td>
+                    <td class="brand-pct">4.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:16.363636363636363%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">Microsoft</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">8</td>
+                    <td class="brand-pct">4.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:14.545454545454545%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">Apple</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">6</td>
+                    <td class="brand-pct">3.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:10.909090909090908%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">白牌(无品牌)</td>
+                    <td><span class="brand-origin-tag" style="background:#95a5a622;color:#95a5a6;border:1px solid #95a5a644">⬜ 白牌</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:7.2727272727272725%;background:#95a5a6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">Infinix</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.6363636363636362%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">Samsung</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">2</td>
+                    <td class="brand-pct">1.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:3.6363636363636362%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">ist computers</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">GPD</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">KOOTIGERS</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#e74c3c"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="country-panel" id="panel-SA">
+    <div class="global-section">
+        <h2>🇸🇦 沙特 · 品牌分布 Top 30（前100名）</h2>
+        <table class="brand-table">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>品牌</th>
+                    <th>来源</th>
+                    <th style="width:80px">数量</th>
+                    <th style="width:80px">占比</th>
+                    <th style="width:200px">分布</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color:#8f98a0">1</td>
+                    <td class="brand-name">HP</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">55</td>
+                    <td class="brand-pct">27.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:100.0%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">2</td>
+                    <td class="brand-name">Lenovo</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">47</td>
+                    <td class="brand-pct">23.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:85.45454545454545%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">3</td>
+                    <td class="brand-name">ASUS</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">33</td>
+                    <td class="brand-pct">16.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:60.0%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">4</td>
+                    <td class="brand-name">Dell</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">16</td>
+                    <td class="brand-pct">8.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:29.09090909090909%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">5</td>
+                    <td class="brand-name">Microsoft</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">10</td>
+                    <td class="brand-pct">5.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:18.181818181818183%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">6</td>
+                    <td class="brand-name">HP -PC</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">5</td>
+                    <td class="brand-pct">2.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:9.090909090909092%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">7</td>
+                    <td class="brand-name">Samsung</td>
+                    <td><span class="brand-origin-tag" style="background:#9b59b622;color:#9b59b6;border:1px solid #9b59b644">🇰🇷 韩国</span></td>
+                    <td class="brand-count">5</td>
+                    <td class="brand-pct">2.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:9.090909090909092%;background:#9b59b6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">8</td>
+                    <td class="brand-name">Apple</td>
+                    <td><span class="brand-origin-tag" style="background:#3498db22;color:#3498db;border:1px solid #3498db44">🇺🇸 美国</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:7.2727272727272725%;background:#3498db"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">9</td>
+                    <td class="brand-name">MSI</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:7.2727272727272725%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">10</td>
+                    <td class="brand-name">CHUWI</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:7.2727272727272725%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">11</td>
+                    <td class="brand-name">Acer</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">4</td>
+                    <td class="brand-pct">2.0%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:7.2727272727272725%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">12</td>
+                    <td class="brand-name">KAIGERR</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">3</td>
+                    <td class="brand-pct">1.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:5.454545454545454%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">13</td>
+                    <td class="brand-name">HUAWEI</td>
+                    <td><span class="brand-origin-tag" style="background:#e74c3c22;color:#e74c3c;border:1px solid #e74c3c44">🇨🇳 中国</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#e74c3c"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">14</td>
+                    <td class="brand-name">白牌(无品牌)</td>
+                    <td><span class="brand-origin-tag" style="background:#95a5a622;color:#95a5a6;border:1px solid #95a5a644">⬜ 白牌</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#95a5a6"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">15</td>
+                    <td class="brand-name">Gigabyte</td>
+                    <td><span class="brand-origin-tag" style="background:#2ecc7122;color:#2ecc71;border:1px solid #2ecc7144">🇹🇼 台湾</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#2ecc71"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">16</td>
+                    <td class="brand-name">yasoe</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">17</td>
+                    <td class="brand-name">Motorola</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">18</td>
+                    <td class="brand-name">FUNYET</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">19</td>
+                    <td class="brand-name">KOOFORWAY</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">20</td>
+                    <td class="brand-name">ist computers</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">21</td>
+                    <td class="brand-name">Tecno</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#7f8c8d"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="color:#8f98a0">22</td>
+                    <td class="brand-name">EYY</td>
+                    <td><span class="brand-origin-tag" style="background:#7f8c8d22;color:#7f8c8d;border:1px solid #7f8c8d44">🏳️ 其他</span></td>
+                    <td class="brand-count">1</td>
+                    <td class="brand-pct">0.5%</td>
+                    <td><div class="brand-bar"><div class="brand-bar-fill" style="width:1.8181818181818181%;background:#7f8c8d"></div></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function switchCountry(code) {
+    // 隐藏所有面板
+    document.querySelectorAll('.country-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.country-btn').forEach(b => b.classList.remove('active'));
+    
+    // 显示选中面板
+    const panel = document.getElementById('panel-' + code);
+    if (panel) panel.classList.add('active');
+    
+    // 高亮按钮
+    document.querySelectorAll('.country-btn').forEach(b => {
+        if (b.textContent.includes(getCountryLabel(code)) || 
+            (code === 'global' && b.textContent.includes('全球'))) {
+            b.classList.add('active');
+        }
+    });
+}
+
+function getCountryLabel(code) {
+    const labels = {        'US': '美国',
+        'GB': '英国',
+        'DE': '德国',
+        'CA': '加拿大',
+        'JP': '日本',
+        'FR': '法国',
+        'IT': '意大利',
+        'ES': '西班牙',
+        'AE': '阿联酋',
+        'SA': '沙特',
+    };
+    return labels[code] || code;
+}
+</script>
+</body>
+</html>
